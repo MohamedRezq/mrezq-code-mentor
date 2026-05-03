@@ -1,10 +1,16 @@
 import type { Lesson } from '@/types/lesson'
+import { pythonCoreLessons } from './phase-1-python-core'
+import { pythonDSALessons } from './phase-2-dsa'
+import { pythonToolingLessons } from './phase-3-tooling'
 import { fastapiLessons } from './phase-1-fastapi'
 import { databaseLessons } from './phase-2-databases'
 import { testingLessons } from './phase-3-testing'
 import { productionLessons } from './phase-4-production'
 
 export const pythonBackendLessons: Lesson[] = [
+  ...pythonCoreLessons,
+  ...pythonDSALessons,
+  ...pythonToolingLessons,
   ...fastapiLessons,
   ...databaseLessons,
   ...testingLessons,
