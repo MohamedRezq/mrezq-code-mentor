@@ -21,9 +21,8 @@ const DIFFICULTY_STYLES = {
 export default function ModulePage({ params }: { params: { moduleId: string } }) {
   const courseModule = getModule(params.moduleId)
   if (!courseModule) notFound()
-  const module = courseModule
 
-  const allLessons = getLessonsByModule(module.id)
+  const allLessons = getLessonsByModule(courseModule.id)
   const firstLesson = allLessons[0]
 
   return (
@@ -32,33 +31,33 @@ export default function ModulePage({ params }: { params: { moduleId: string } })
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-foreground font-medium">{module.title}</span>
+          <span className="text-foreground font-medium">{courseModule.title}</span>
         </div>
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${TRACK_STYLES[module.track]}`}>
-              {module.track}
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${TRACK_STYLES[courseModule.track]}`}>
+              {courseModule.track}
             </span>
-            <span className="text-xs text-muted-foreground">Module {module.number}</span>
+            <span className="text-xs text-muted-foreground">Module {courseModule.number}</span>
           </div>
-          <h1 className="text-4xl font-black text-foreground mb-4">{module.title}</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">{module.description}</p>
+          <h1 className="text-4xl font-black text-foreground mb-4">{courseModule.title}</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">{courseModule.description}</p>
 
           <div className="flex items-center gap-6 mt-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />{allLessons.length} lessons
             </span>
             <span className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />{module.duration}
+              <Clock className="w-4 h-4" />{courseModule.duration}
             </span>
           </div>
 
           {firstLesson && (
             <Link
-              href={`/learn/${module.id}/${firstLesson.id}`}
+              href={`/learn/${courseModule.id}/${firstLesson.id}`}
               className="inline-flex items-center gap-2 mt-8 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
             >
               Start Learning <ArrowRight className="w-4 h-4" />
@@ -67,7 +66,7 @@ export default function ModulePage({ params }: { params: { moduleId: string } })
         </div>
 
         <div className="space-y-10">
-          {module.phases.map(phase => {
+          {courseModule.phases.map(phase => {
             const phaseLessons = getLessonsByPhase(phase.id)
             return (
               <div key={phase.id}>
@@ -88,7 +87,7 @@ export default function ModulePage({ params }: { params: { moduleId: string } })
                     phaseLessons.map((lesson, i) => (
                       <Link
                         key={lesson.id}
-                        href={`/learn/${module.id}/${lesson.id}`}
+                        href={`/learn/${courseModule.id}/${lesson.id}`}
                         className="flex items-center gap-4 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-muted/40 transition-all p-4 group"
                       >
                         <span className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground shrink-0">

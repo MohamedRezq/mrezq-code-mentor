@@ -11,7 +11,7 @@ interface LearningShellProps {
 }
 
 export function LearningShell({ children }: LearningShellProps) {
-  const { sidebarOpen: _sidebarOpen } = useUIStore();
+  useUIStore();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
