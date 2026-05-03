@@ -1340,4 +1340,181 @@ def memoize(maxsize: int = 128):
       },
     ],
   },
+
+  // ─── Lesson 7: Regular Expressions ──────────────────────────────────────
+  {
+    id: 'py-regex',
+    moduleId: 'python-backend',
+    phaseId: 'py-core',
+    phaseNumber: 1,
+    order: 7,
+    title: 'Regular Expressions',
+    description: 'Master Python\'s re module to search, extract, validate, and transform text — an essential skill for log parsing, data cleaning, URL routing, and input validation.',
+    duration: '40 min',
+    difficulty: 'intermediate',
+    objectives: [
+      'Understand regex syntax: character classes, quantifiers, groups, anchors',
+      'Use re.search, re.match, re.findall, re.sub, and re.compile',
+      'Write named groups and use them in substitutions',
+      'Apply regex to real tasks: email validation, log parsing, URL extraction',
+      'Know when NOT to use regex (nested structures, HTML parsing)',
+    ],
+    content: [
+      {
+        type: 'text',
+        markdown: `## Regex Quick Reference
+
+| Pattern | Matches |
+|---------|---------|
+| \`.\` | Any character except newline |
+| \`\\d\` | Digit (0-9) |
+| \`\\w\` | Word char (a-z, A-Z, 0-9, _) |
+| \`\\s\` | Whitespace |
+| \`\\D \\W \\S\` | Negated versions |
+| \`^\` | Start of string |
+| \`\$\` | End of string |
+| \`*\` | 0 or more |
+| \`+\` | 1 or more |
+| \`?\` | 0 or 1 (optional) |
+| \`{n,m}\` | Between n and m times |
+| \`[abc]\` | Character class (a, b, or c) |
+| \`[^abc]\` | Negated class (not a, b, or c) |
+| \`(abc)\` | Capture group |
+| \`(?P<name>...)\` | Named capture group |
+| \`a\|b\` | a or b |`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'regex_basics.py',
+        code: `import re
+
+text = "Contact us at support@example.com or sales@company.org"
+
+# re.search — finds FIRST match anywhere in string
+match = re.search(r"\\w+@\\w+\\.\\w+", text)
+if match:
+    print(match.group())    # "support@example.com"
+    print(match.start())    # 14 (position in string)
+    print(match.span())     # (14, 33)
+
+# re.findall — returns ALL non-overlapping matches as a list
+emails = re.findall(r"[\\w.+-]+@[\\w-]+\\.[\\w.]+", text)
+print(emails)   # ["support@example.com", "sales@company.org"]
+
+# re.match — only matches at the START of string
+if re.match(r"Contact", text):
+    print("Starts with Contact")
+
+# re.fullmatch — entire string must match
+if re.fullmatch(r"[\\w.+-]+@[\\w-]+\\.[\\w.]+", "alice@example.com"):
+    print("Valid email")
+
+# re.sub — replace matches
+cleaned = re.sub(r"\\s+", " ", "too   many    spaces")
+print(cleaned)   # "too many spaces"
+
+# Back-reference in substitution
+swapped = re.sub(r"(\\w+) (\\w+)", r"\\2 \\1", "John Smith")
+print(swapped)   # "Smith John"
+
+# re.compile — compile for reuse (faster when called many times)
+EMAIL_RE = re.compile(r"[\\w.+-]+@[\\w-]+\\.[\\w.]+")
+if EMAIL_RE.match("test@example.com"):
+    print("Valid")`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'regex_groups.py',
+        code: `import re
+
+# Named groups — readable and maintainable
+LOG_LINE = "2024-03-15 14:23:45 ERROR Database connection failed: timeout"
+
+pattern = re.compile(
+    r"(?P<date>\\d{4}-\\d{2}-\\d{2}) "
+    r"(?P<time>\\d{2}:\\d{2}:\\d{2}) "
+    r"(?P<level>\\w+) "
+    r"(?P<message>.+)"
+)
+
+match = pattern.match(LOG_LINE)
+if match:
+    print(match.group("date"))     # "2024-03-15"
+    print(match.group("level"))    # "ERROR"
+    print(match.group("message"))  # "Database connection failed: timeout"
+    print(match.groupdict())       # all groups as a dict
+
+# Practical: parse all log lines
+log_data = """2024-03-15 14:23:45 INFO  Server started on port 8000
+2024-03-15 14:23:46 ERROR Database connection failed
+2024-03-15 14:23:47 WARN  Retry attempt 1/3"""
+
+errors = [
+    m.groupdict()
+    for line in log_data.splitlines()
+    if (m := pattern.match(line)) and m.group("level") == "ERROR"
+]
+
+# Flags
+re.search(r"hello", "Hello World", re.IGNORECASE)   # case-insensitive
+re.findall(r"^\\d+", text, re.MULTILINE)             # ^ matches each line start
+
+# Non-capturing group (?:...) — group without capturing
+parts = re.findall(r"(?:https?|ftp)://([\\w./-]+)", "Visit https://example.com")
+print(parts)   # ["example.com"] — only captured group returned`,
+      },
+      {
+        type: 'callout',
+        tone: 'warning',
+        title: 'Raw Strings for Regex',
+        content: 'Always use raw strings (`r"..."`) for regex patterns. Without `r`, `\\d` becomes the character `d` after Python processes the backslash. With `r`, the backslash reaches the regex engine unchanged. One of the most common regex bugs in Python code.',
+      },
+      {
+        type: 'exercise',
+        title: 'Log Parser',
+        description: 'Write a `parse_logs(log_text: str) -> dict` function that parses Nginx access log lines and returns `{"total": int, "by_status": dict[str, int], "errors": list[dict]}`. Each log line format: `IP - - [DATE] "METHOD PATH HTTP" STATUS BYTES`',
+        language: 'python',
+        starterCode: `import re
+
+NGINX_LOG = """192.168.1.1 - - [15/Mar/2024:14:23:45 +0000] "GET /api/users HTTP/1.1" 200 1234
+10.0.0.2 - - [15/Mar/2024:14:23:46 +0000] "POST /api/login HTTP/1.1" 401 89
+172.16.0.3 - - [15/Mar/2024:14:23:47 +0000] "GET /api/data HTTP/1.1" 500 0"""
+
+def parse_logs(log_text: str) -> dict:
+    pass`,
+        solution: `import re
+
+PATTERN = re.compile(
+    r'(?P<ip>[\\d.]+) - - \\[(?P<date>[^\\]]+)\\] '
+    r'"(?P<method>\\w+) (?P<path>[^ ]+) HTTP/[\\d.]+" '
+    r'(?P<status>\\d{3}) (?P<bytes>\\d+)'
+)
+
+def parse_logs(log_text: str) -> dict:
+    lines = log_text.strip().splitlines()
+    by_status: dict[str, int] = {}
+    errors = []
+
+    for line in lines:
+        m = PATTERN.match(line)
+        if not m:
+            continue
+        d = m.groupdict()
+        status = d["status"]
+        by_status[status] = by_status.get(status, 0) + 1
+        if status.startswith("5"):
+            errors.append({
+                "ip": d["ip"],
+                "path": d["path"],
+                "status": status,
+                "date": d["date"],
+            })
+
+    return {"total": len(lines), "by_status": by_status, "errors": errors}`,
+        hints: ['[^\\]]+  matches everything that is not a ] — useful for the date field', 'status.startswith("5") catches all 5xx server errors', 'Use groupdict() to get all named groups at once'],
+      },
+    ],
+  },
 ]

@@ -184,10 +184,10 @@ export const MODULES: Module[] = [
     id: 'python-backend',
     number: '09',
     title: 'Python Backend Engineering',
-    description: 'From Python zero to production backend engineer — core language, data structures, tooling, FastAPI, databases, testing, and deployment.',
+    description: 'From Python zero to production backend engineer — core language, data structures, tooling, Django, Flask, FastAPI, databases, testing, and deployment.',
     track: 'Technical',
-    duration: '6–8 months',
-    totalLessons: 34,
+    duration: '7–9 months',
+    totalLessons: 42,
     comingSoon: false,
     phases: [
       {
@@ -195,7 +195,7 @@ export const MODULES: Module[] = [
         number: 1,
         title: 'Python Core',
         duration: '3 weeks',
-        description: 'Syntax, types, control flow, functions, collections, OOP, decorators, generators, and context managers',
+        description: 'Syntax, types, control flow, functions, collections, OOP, decorators, generators, context managers, and regular expressions',
         lessonIds: [
           'py-basics',
           'py-control-flow',
@@ -203,6 +203,7 @@ export const MODULES: Module[] = [
           'py-collections',
           'py-oop',
           'py-advanced',
+          'py-regex',
         ],
       },
       {
@@ -234,8 +235,23 @@ export const MODULES: Module[] = [
         ],
       },
       {
-        id: 'pb-fastapi',
+        id: 'py-django',
         number: 4,
+        title: 'Django & Flask',
+        duration: '4 weeks',
+        description: 'Django MTV pattern, ORM, migrations, DRF APIs, auth, admin panel, and Flask for microservices',
+        lessonIds: [
+          'dj-intro',
+          'dj-models',
+          'dj-views',
+          'dj-drf',
+          'dj-auth',
+          'py-flask',
+        ],
+      },
+      {
+        id: 'pb-fastapi',
+        number: 5,
         title: 'FastAPI & REST APIs',
         duration: '4 weeks',
         description: 'Build modern REST APIs with FastAPI, Pydantic v2, JWT auth, async patterns, and production middleware',
@@ -250,7 +266,7 @@ export const MODULES: Module[] = [
       },
       {
         id: 'pb-databases',
-        number: 5,
+        number: 6,
         title: 'Databases & Persistence',
         duration: '4 weeks',
         description: 'SQLAlchemy 2.0 async ORM, Alembic migrations, advanced queries, Redis caching, and PostgreSQL optimization',
@@ -264,7 +280,7 @@ export const MODULES: Module[] = [
       },
       {
         id: 'pb-testing',
-        number: 6,
+        number: 7,
         title: 'Testing & Quality',
         duration: '2 weeks',
         description: 'pytest fundamentals, FastAPI integration tests, test patterns, mocking, and CI quality gates',
@@ -276,7 +292,7 @@ export const MODULES: Module[] = [
       },
       {
         id: 'pb-production',
-        number: 7,
+        number: 8,
         title: 'Production & Deployment',
         duration: '3 weeks',
         description: 'Docker multi-stage builds, Celery task queues, structured logging, OpenTelemetry, and deployment patterns',
