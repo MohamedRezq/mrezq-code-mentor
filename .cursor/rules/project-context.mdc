@@ -1,0 +1,101 @@
+---
+description: SeniorPath — project context, architecture, current status, and continuation guide
+alwaysApply: true
+---
+
+# SeniorPath — Learning Platform
+
+## What This App Is
+A self-contained engineering learning platform. No external resources needed. Goal: take a developer from zero to Senior Engineer, Engineering Manager, and CTO across 9 modules. Every explanation, example, production demo, and hands-on project lives here.
+
+## Tech Stack
+- **Framework**: Next.js 15 (App Router, Turbopack)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Auth/DB**: Supabase (auth + progress tracking)
+- **AI Tutor**: Anthropic Claude API (`/api/ai/chat`, `/api/ai/explain`, `/api/ai/hint`, `/api/ai/review`)
+- **Code Playgrounds**: Sandpack (`@codesandbox/sandpack-react`)
+- **Syntax Highlighting**: `react-syntax-highlighter` (atomOneDark/atomOneLight)
+- **Markdown**: `react-markdown` + `remark-gfm`
+
+## Routes
+```
+/                                    → Home page (9 module cards)
+/learn                               → Redirects to /learn/ai-engineering
+/learn/[moduleId]                    → Module overview page (lesson list)
+/learn/[moduleId]/[lessonId]         → Lesson viewer (sidebar + content)
+/api/ai/chat                         → Streaming Claude AI tutor
+/api/ai/explain, /hint, /review      → Claude lesson helpers
+```
+
+## Key Files
+```
+src/types/lesson.ts                  → All TypeScript types (Lesson, Module, ContentBlock, etc.)
+src/data/modules.ts                  → All 9 module definitions (MODULES array)
+src/data/lessons/index.ts            → getLessonById, getLessonsByModule, getAdjacentLessons
+src/data/lessons/ai-engineering/     → All AI Engineering lesson content
+  phase-0-python.ts                  → 6 full Python lessons (COMPLETE)
+  phase-1-llm-apis.ts                → 7 full LLM API lessons (COMPLETE)
+  phase-2-rag.ts                     → 5 RAG lessons (stubs — needs full content)
+  phase-3-agents-and-production.ts   → 9 Agent+Production lessons (stubs — needs full content)
+  index.ts                           → Combines all AI Engineering lessons
+src/components/lesson/
+  code-block.tsx                     → Syntax-highlighted code block (copy button, filename)
+  content-renderer.tsx               → Renders ContentBlock[] (text/code/callout/exercise)
+  lesson-sidebar.tsx                 → Left sidebar with phase/lesson navigation
+src/app/(marketing)/page.tsx         → Home page
+src/app/(learn)/learn/[moduleId]/page.tsx          → Module overview
+src/app/(learn)/learn/[moduleId]/[lessonId]/page.tsx → Lesson viewer
+```
+
+## 9 Modules
+| # | ID | Title | Track | Status |
+|---|----|-------|-------|--------|
+| 00 | cs-fundamentals | CS Fundamentals & DSA | Foundation | Coming Soon |
+| 01 | frontend | Frontend Engineering | Technical | Coming Soon |
+| 02 | backend | Backend Engineering | Technical | Coming Soon |
+| 03 | databases | Database Engineering | Technical | Coming Soon |
+| 04 | system-design | System Design & Architecture | Foundation | Coming Soon |
+| 05 | devops | DevOps & Cloud Engineering | Technical | Coming Soon |
+| 06 | ai-engineering | AI Engineering | Technical | **LIVE** |
+| 07 | security | Security Engineering | Specialization | Coming Soon |
+| 08 | leadership | Engineering Leadership | Leadership | Coming Soon |
+
+## AI Engineering Module — Lesson Status
+- **Phase 0 (Python)**: 6 lessons — ALL COMPLETE with full content
+  - py-basics, py-data-structures, py-oop-pydantic, py-files-json, py-http-requests, py-async
+- **Phase 1 (LLM APIs)**: 7 lessons — ALL COMPLETE with full content
+  - llm-how-it-works, llm-openai-api, llm-claude-api, llm-prompt-fundamentals, llm-chain-of-thought, llm-structured-output, llm-streaming
+- **Phase 2 (RAG)**: 5 stubs — rag-embeddings (partial), rag-vector-databases (partial), rag-pipeline (stub), rag-hybrid-search (stub), rag-advanced (stub)
+- **Phase 3 (Agents)**: 5 stubs — agents-intro (partial), agents-tool-calling (stub), agents-langgraph (stub), agents-multi-agent (stub), agents-context-engineering (stub)
+- **Phase 4 (Production)**: 4 stubs — prod-evaluation, prod-finetuning, prod-cost-optimization, prod-guardrails
+
+## ContentBlock Format
+Lessons use a `ContentBlock[]` array. Four types:
+```typescript
+{ type: 'text', markdown: string }
+{ type: 'code', language, filename?, code, explanation? }
+{ type: 'callout', tone: 'tip'|'warning'|'info'|'production'|'important', title?, content }
+{ type: 'exercise', title, description, starterCode, language, solution, hints? }
+```
+
+## What Was Agreed: Roadmap
+Based on research from roadmap.sh, Level Up Coding (2026), BirJob AI Engineering roadmap.
+The 9-module structure was approved by the user. Python was added as Phase 0 of AI Engineering.
+
+## Next Priorities (in order)
+1. **Fill in Phase 2 RAG lessons** — rag-embeddings, rag-vector-databases, rag-pipeline, rag-hybrid-search, rag-advanced (each needs full `content: ContentBlock[]`)
+2. **Fill in Phase 3 Agent lessons** — agents-intro (has partial content), rest are stubs
+3. **Fill in Phase 4 Production lessons** — all stubs
+4. **Add other modules** — Frontend, Backend, DevOps, System Design, etc. (same content format)
+5. **Sandpack interactive playgrounds** — add `playground: PlaygroundConfig` to lessons with runnable code
+6. **Progress tracking** — wire Supabase progress to lesson sidebar checkmarks
+7. **AI Tutor integration** — floating chat button in lesson viewer that calls `/api/ai/chat`
+8. **Search** — search across all lessons
+
+## Coding Conventions
+- All lesson content lives in `src/data/lessons/[moduleId]/` as TypeScript files
+- Lesson `id` must match `lessonIds` array in the corresponding `PhaseInfo` in `src/data/modules.ts`
+- All lesson files export a typed `Lesson[]` array
+- No hardcoded hex colors — use Tailwind classes
+- Server components for pages, 'use client' only when needed (CodeBlock, ContentRenderer, Sidebar)
