@@ -18,8 +18,9 @@ const DIFFICULTY_STYLES = {
   advanced: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
 
-export default function ModulePage({ params }: { params: { moduleId: string } }) {
-  const courseModule = getModule(params.moduleId)
+export default async function ModulePage({ params }: { params: Promise<{ moduleId: string }> }) {
+  const { moduleId } = await params
+  const courseModule = getModule(moduleId)
   if (!courseModule) notFound()
 
   const allLessons = getLessonsByModule(courseModule.id)

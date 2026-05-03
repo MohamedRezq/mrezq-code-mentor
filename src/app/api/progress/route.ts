@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = await createClient() as any;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -32,7 +33,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = await createClient() as any;
     const {
       data: { user },
     } = await supabase.auth.getUser();

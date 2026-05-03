@@ -7,7 +7,8 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") ?? "/learn";
 
   if (code) {
-    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = await createClient() as any;
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {

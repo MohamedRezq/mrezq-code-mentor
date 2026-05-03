@@ -12,13 +12,14 @@ const DIFFICULTY_STYLES = {
   advanced: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
 
-export default function LessonPage({
+export default async function LessonPage({
   params,
 }: {
-  params: { moduleId: string; lessonId: string }
+  params: Promise<{ moduleId: string; lessonId: string }>
 }) {
-  const courseModule = getModule(params.moduleId)
-  const lesson = getLessonById(params.lessonId)
+  const { moduleId, lessonId } = await params
+  const courseModule = getModule(moduleId)
+  const lesson = getLessonById(lessonId)
 
   if (!courseModule || !lesson) notFound()
 

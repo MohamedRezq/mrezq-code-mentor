@@ -110,7 +110,8 @@ export default function OnboardingPage() {
         return;
       }
 
-      const { error: updateError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase as any)
         .from("profiles")
         .update({
           learning_style: learningStyle,

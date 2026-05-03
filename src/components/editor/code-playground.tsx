@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import {
   SandpackProvider,
   SandpackLayout,
@@ -133,20 +134,10 @@ export function CodePlayground({
     showPreview ? "preview" : "console"
   );
 
-  const files =
+  const files: SandpackFiles =
     language === "javascript"
-      ? {
-          "/index.js": {
-            code: initialCode,
-            active: true,
-          },
-        }
-      : {
-          "/index.html": {
-            code: initialCode,
-            active: true,
-          },
-        };
+      ? { "/index.js": { code: initialCode, active: true } }
+      : { "/index.html": { code: initialCode, active: true } };
 
   const template = language === "javascript" ? "vanilla" : "static";
 
