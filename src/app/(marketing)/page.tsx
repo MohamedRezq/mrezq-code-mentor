@@ -35,7 +35,7 @@ const NUMBER_STYLES: Record<string, string> = {
 }
 
 export default function HomePage() {
-  const availableModules = MODULES.filter(m => !m.comingSoon)
+  const _availableModules = MODULES.filter(m => !m.comingSoon)
   const totalLessons = MODULES.reduce((s, m) => s + m.totalLessons, 0)
 
   return (

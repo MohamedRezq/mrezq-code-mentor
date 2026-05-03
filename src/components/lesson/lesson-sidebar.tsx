@@ -1,8 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { CheckCircle2, Circle, ChevronDown, ChevronRight, Lock } from 'lucide-react'
+import { CheckCircle2, Circle, ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { Module, PhaseInfo } from '@/types/lesson'
 import { getLessonsByPhase } from '@/data/lessons'

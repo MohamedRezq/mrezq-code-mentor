@@ -19,8 +19,9 @@ const DIFFICULTY_STYLES = {
 }
 
 export default function ModulePage({ params }: { params: { moduleId: string } }) {
-  const module = getModule(params.moduleId)
-  if (!module) notFound()
+  const courseModule = getModule(params.moduleId)
+  if (!courseModule) notFound()
+  const module = courseModule
 
   const allLessons = getLessonsByModule(module.id)
   const firstLesson = allLessons[0]

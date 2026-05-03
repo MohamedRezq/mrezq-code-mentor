@@ -17,17 +17,17 @@ export default function LessonPage({
 }: {
   params: { moduleId: string; lessonId: string }
 }) {
-  const module = getModule(params.moduleId)
+  const courseModule = getModule(params.moduleId)
   const lesson = getLessonById(params.lessonId)
 
-  if (!module || !lesson) notFound()
+  if (!courseModule || !lesson) notFound()
 
   const { prev, next } = getAdjacentLessons(lesson.id)
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
-      <LessonSidebar module={module} activeLessonId={lesson.id} />
+      <LessonSidebar module={courseModule} activeLessonId={lesson.id} />
 
       {/* Main content */}
       <div className="flex-1 overflow-y-auto">
@@ -36,8 +36,8 @@ export default function LessonPage({
           <div className="max-w-4xl mx-auto px-8 py-3 flex items-center gap-2 text-sm text-muted-foreground">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link href={`/learn/${module.id}`} className="hover:text-foreground transition-colors">
-              {module.title}
+            <Link href={`/learn/${courseModule.id}`} className="hover:text-foreground transition-colors">
+              {courseModule.title}
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-foreground truncate max-w-xs">{lesson.title}</span>
@@ -99,7 +99,7 @@ export default function LessonPage({
           <nav className="mt-16 pt-8 border-t border-border flex items-center justify-between gap-4">
             {prev ? (
               <Link
-                href={`/learn/${module.id}/${prev.id}`}
+                href={`/learn/${courseModule.id}/${prev.id}`}
                 className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group max-w-xs"
               >
                 <ArrowLeft className="w-4 h-4 shrink-0 group-hover:-translate-x-0.5 transition-transform" />
@@ -109,7 +109,7 @@ export default function LessonPage({
 
             {next ? (
               <Link
-                href={`/learn/${module.id}/${next.id}`}
+                href={`/learn/${courseModule.id}/${next.id}`}
                 className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors group max-w-xs"
               >
                 <span className="truncate text-right">{next.title}</span>
@@ -117,7 +117,7 @@ export default function LessonPage({
               </Link>
             ) : (
               <Link
-                href={`/learn/${module.id}`}
+                href={`/learn/${courseModule.id}`}
                 className="flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-500 transition-colors"
               >
                 <span>Module Complete!</span>

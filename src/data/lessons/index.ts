@@ -1,5 +1,5 @@
 import type { Lesson } from '@/types/lesson'
-import { aiEngineeringLessons, getLessonById as getAiLesson, getLessonsByPhase as getAiPhase } from './ai-engineering'
+import { aiEngineeringLessons } from './ai-engineering'
 import { pythonBackendLessons } from './python-backend'
 
 export const ALL_LESSONS: Lesson[] = [...aiEngineeringLessons, ...pythonBackendLessons]

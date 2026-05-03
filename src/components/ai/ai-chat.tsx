@@ -208,7 +208,7 @@ export function AIChat() {
                     <div className="p-4 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 mb-4">
                       <Sparkles className="h-8 w-8 text-violet-500" />
                     </div>
-                    <p className="font-medium">Hi! I'm your AI tutor.</p>
+                    <p className="font-medium">Hi! I&apos;m your AI tutor.</p>
                     <p className="text-sm mt-1">
                       Ask me anything about coding!
                     </p>

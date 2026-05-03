@@ -245,7 +245,7 @@ export function LessonViewer({
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold gradient-text">Lesson Complete!</h2>
           <p className="text-muted-foreground">
-            Great job! You've completed this lesson.
+            Great job! You&apos;ve completed this lesson.
           </p>
         </div>
         <div className="flex gap-4">
