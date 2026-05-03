@@ -1,4 +1,3 @@
-import { Code2 } from "lucide-react";
 import Link from "next/link";
 
 export default function AuthLayout({
@@ -8,9 +7,11 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30">
-      <Link href="/" className="flex items-center space-x-2 mb-8">
-        <Code2 className="h-8 w-8 text-primary" />
-        <span className="text-2xl font-bold">Devling</span>
+      <Link href="/" className="flex items-center gap-2 mb-8">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground text-sm font-black">S</span>
+        </div>
+        <span className="text-xl font-bold text-foreground">SeniorPath</span>
       </Link>
       {children}
     </div>
