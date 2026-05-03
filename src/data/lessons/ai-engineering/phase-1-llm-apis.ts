@@ -262,7 +262,7 @@ Format your response as:
             },
             {
                 "role": "user",
-                "content": f"Review this code:\\n\\n```python\\n{code}\\n```",
+                "content": f"Review this code:\\n\\n\`\`\`python\\n{code}\\n\`\`\`",
             },
         ],
         temperature=0.0,  # deterministic for code review
@@ -1084,7 +1084,7 @@ def review_code_with_claude(code: str) -> CodeReview:
         messages=[
             {
                 "role": "user",
-                "content": f"Review this Python code for issues:\\n\\n```python\\n{code}\\n```",
+                "content": f"Review this Python code for issues:\\n\\n\`\`\`python\\n{code}\\n\`\`\`",
             }
         ],
     )

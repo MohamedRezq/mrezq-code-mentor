@@ -165,7 +165,7 @@ print(rag_prompt)
 token_count = 1_234_567
 cost = 0.00234
 print(f"Tokens used: {token_count:,}")       # 1,234,567
-print(f"Cost: ${cost:.4f}")                  # $0.0023`,
+print(f"Cost: \${cost:.4f}")                  # $0.0023`,
       },
       {
         type: 'callout',
