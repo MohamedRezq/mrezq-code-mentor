@@ -9,7 +9,10 @@ export function getLessonById(id: string): Lesson | undefined {
 }
 
 export function getLessonsByModule(moduleId: string): Lesson[] {
-  return ALL_LESSONS.filter(l => l.moduleId === moduleId).sort((a, b) => a.order - b.order)
+  return ALL_LESSONS.filter(l => l.moduleId === moduleId).sort((a, b) => {
+    if (a.phaseNumber !== b.phaseNumber) return a.phaseNumber - b.phaseNumber
+    return a.order - b.order
+  })
 }
 
 export function getLessonsByPhase(phaseId: string): Lesson[] {

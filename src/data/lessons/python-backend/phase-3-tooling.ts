@@ -842,13 +842,165 @@ def test_empty_raises(fn): pytest.raises(ValueError, fn, [])`,
     ],
   },
 
-  // ─── Lesson 5: Concurrency — GIL, Threading, Multiprocessing & asyncio ──
+  // ─── Lesson 5: Scripts, env & HTTP (full-stack bridge) ─────────────────
+  {
+    id: 'py-fullstack-scripts',
+    moduleId: 'python-backend',
+    phaseId: 'py-tooling',
+    phaseNumber: 3,
+    order: 5,
+    title: 'Scripts, Environment Variables & HTTP Clients',
+    description:
+      'Write small automation and integration scripts like a full-stack engineer: load `.env`, parse CLI flags, and call HTTP APIs with `httpx` (sync and async overview).',
+    duration: '50 min',
+    difficulty: 'intermediate',
+    objectives: [
+      'Load secrets and config with `python-dotenv` without committing them',
+      'Expose flags with `argparse` for reproducible one-off tools',
+      'Perform typed GET/POST calls with timeouts and error handling',
+      'Know when to reuse the same patterns your frontend uses (JSON, headers, bearer tokens)',
+    ],
+    content: [
+      {
+        type: 'text',
+        markdown: `## Same contracts as the browser
+
+Your React app sends JSON and bearer tokens. Python tooling should speak the same shapes — it makes debugging production issues much faster.`,
+      },
+      {
+        type: 'code',
+        language: 'bash',
+        filename: 'deps.sh',
+        code: `pip install httpx python-dotenv`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'env_cli.py',
+        code: `import argparse
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env beside cwd
+
+API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000")
+
+parser = argparse.ArgumentParser(description="Ping backend health endpoint")
+parser.add_argument("--path", default="/health", help="Path to GET")
+args = parser.parse_args()
+
+import httpx
+
+url = API_URL.rstrip("/") + args.path
+resp = httpx.get(url, timeout=10.0)
+resp.raise_for_status()
+print(resp.json())`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'httpx_post.py',
+        code: `import httpx
+
+payload = {"email": "user@example.com", "name": "Ada"}
+
+with httpx.Client(base_url="https://api.example.com", timeout=15.0) as client:
+    r = client.post("/v1/users", json=payload, headers={"Authorization": "Bearer TOKEN"})
+    r.raise_for_status()
+    user = r.json()
+    print(user.get("id"))`,
+      },
+      {
+        type: 'callout',
+        tone: 'warning',
+        title: 'Never print secrets',
+        content:
+          'Log request ids, not access tokens. In real services, read tokens from env or a vault — the snippets use placeholders.',
+      },
+      {
+        type: 'exercise',
+        title: 'CLI status checker',
+        description:
+          'Using `argparse`, accept `--url` (required). `GET` the URL with httpx, print status code; on 4xx/5xx print body text (first 500 chars). Exit with code 1 if request fails.',
+        language: 'python',
+        starterCode: `import argparse
+import sys
+
+import httpx
+
+
+def main() -> None:
+    ...
+
+
+if __name__ == "__main__":
+    main()
+`,
+        solution: `import argparse
+import sys
+
+import httpx
+
+
+def main() -> None:
+    p = argparse.ArgumentParser()
+    p.add_argument("--url", required=True)
+    args = p.parse_args()
+    try:
+        r = httpx.get(args.url, timeout=15.0)
+    except httpx.HTTPError as exc:
+        print("request failed:", exc)
+        sys.exit(1)
+    print("status", r.status_code)
+    if r.status_code >= 400:
+        print(r.text[:500])
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()`,
+        hints: ['httpx.get can raise for transport errors; status codes you check manually unless using raise_for_status()', 'Slice text to avoid dumping HTML megabytes'],
+      },
+      {
+        type: 'exercise',
+        title: 'Parse Link header',
+        description:
+          'Function `next_page_url(response: httpx.Response) -> str | None` parses RFC 5988-style `Link` header for `rel="next"` URI if present; else None. Use `re` or string split — keep it pragmatic.',
+        language: 'python',
+        starterCode: `import re
+
+import httpx
+
+
+def next_page_url(response: httpx.Response) -> str | None:
+    ...
+`,
+        solution: `import re
+
+import httpx
+
+_LINK = re.compile(r'<([^>]+)>;\\s*rel="next"', re.IGNORECASE)
+
+
+def next_page_url(response: httpx.Response) -> str | None:
+    link = response.headers.get("link")
+    if not link:
+        return None
+    m = _LINK.search(link)
+    return m.group(1) if m else None`,
+        hints: ['Headers are case-insensitive but httpx normalizes to lower keys in .headers.get — actually it is lower-cased', 'Use response.headers.get("link") — httpx lowercases header keys'],
+      },
+    ],
+  },
+
+  // ─── Lesson 6: Concurrency — GIL, Threading, Multiprocessing & asyncio ──
   {
     id: 'py-concurrency',
     moduleId: 'python-backend',
     phaseId: 'py-tooling',
     phaseNumber: 3,
-    order: 5,
+    order: 6,
     title: 'Concurrency: GIL, Threading, Multiprocessing & asyncio',
     description: 'Understand Python\'s concurrency model from first principles — the GIL, what it blocks and what it doesn\'t, when to use threads vs processes vs async, and how asyncio works under the hood.',
     duration: '60 min',

@@ -64,6 +64,22 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
               Start Learning <ArrowRight className="w-4 h-4" />
             </Link>
           )}
+
+          {moduleId === 'python-backend' && (
+            <div className="mt-6 rounded-xl border border-primary/30 bg-primary/5 px-5 py-4 text-sm">
+              <p className="font-semibold text-foreground mb-1">Printable cheat sheet (save as PDF)</p>
+              <p className="text-muted-foreground mb-3">
+                One-page reference for syntax, collections, files, JSON, regex, and tooling — use your browser&apos;s
+                Print → Save as PDF.
+              </p>
+              <Link
+                href={`/learn/${courseModule.id}/cheat-sheet`}
+                className="inline-flex items-center gap-2 font-medium text-primary hover:text-primary/80"
+              >
+                Open cheat sheet <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="space-y-10">
