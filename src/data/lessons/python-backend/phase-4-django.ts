@@ -34,6 +34,20 @@ FastAPI is great for APIs. Django is great for **full applications** — it ship
 The URL router maps incoming requests to the right view.`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'MTV vs MVC naming',
+        content:
+          'Django’s **View** is roughly what other frameworks call a **Controller** — it decides what data to fetch and which template/response to build. **Templates** are the view layer in MVC terms. The names differ; the flow (URL → logic → presentation) is the same idea.',
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`startproject` trailing dot',
+        content:
+          '`django-admin startproject name .` puts `manage.py` and the inner package in the **current** directory. Without the dot, Django creates an extra nested folder. Most teams use the dot so the repo root stays clean.',
+      },
+      {
         type: 'code',
         language: 'bash',
         filename: 'setup.sh',
@@ -245,6 +259,13 @@ urlpatterns = [
       'Use select_related and prefetch_related to avoid N+1 queries',
     ],
     content: [
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Migrations are your schema contract',
+        content:
+          '`makemigrations` writes Python files describing how models changed; `migrate` applies those operations to the database. Never edit applied migration files in a shared repo — add a new migration instead. The ORM and DB only stay aligned if migrations are committed and run everywhere.',
+      },
       {
         type: 'code',
         language: 'python',
@@ -476,6 +497,13 @@ def get_dashboard_stats() -> dict:
     ],
     content: [
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'FBV vs CBV',
+        content:
+          'Function-based views are explicit and easy to test. Class-based views save boilerplate for CRUD (`ListView`, `UpdateView`) but hide flow in mixins — learn the parent `dispatch()` / `get()` order before customising. Pick FBV until patterns repeat, then refactor to CBV.',
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'courses/views.py',
@@ -657,6 +685,13 @@ def search(request: HttpRequest) -> JsonResponse:
 # Add to INSTALLED_APPS in settings.py:
 # "rest_framework",
 # "django_filters",`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Serializer boundary',
+        content:
+          'Serializers are the **trust boundary** between JSON and your DB models: validate untrusted input here, not in random view code. `ModelSerializer` is fast to start; drop to `Serializer` when the wire shape diverges from the ORM model.',
       },
       {
         type: 'code',
@@ -902,6 +937,13 @@ class EnrollmentViewSet(viewsets.ReadOnlyModelViewSet):
         content: 'Create a custom User model BEFORE your first migration, even if you don\'t need extra fields yet. Changing the User model later requires wiping the database. Django explicitly recommends this in their docs.',
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`AUTH_USER_MODEL`',
+        content:
+          'Point `AUTH_USER_MODEL` to your custom user **before** any migration creates `auth_user` rows. Third-party apps read this setting at import time — changing it mid-project breaks foreign keys. Plan the user model on day one.',
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'accounts/models.py',
@@ -1076,6 +1118,13 @@ def publish_course(request, slug):
 | Async | Add-on (Quart) | Limited | Native |
 
 **Choose Flask when:** small service, full control over every component, integrating non-standard storage, or rapid prototyping.`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Application factory',
+        content:
+          '`create_app()` delays creating the `Flask` instance until configuration is loaded — mandatory for tests (swap config) and for running multiple app instances. Avoid a single global `app = Flask(__name__)` in anything larger than a script.',
       },
       {
         type: 'code',
@@ -1263,6 +1312,181 @@ def health_db():
     except Exception as e:
         return jsonify({"status": "error", "detail": str(e)}), 503`,
         hints: ['Use text("SELECT 1") from sqlalchemy to run a raw query', 'Return a 503 status code when the DB is unreachable', 'datetime.now(timezone.utc).isoformat() gives a timezone-aware ISO timestamp'],
+      },
+    ],
+  },
+  // ─── Lesson 7: Framework Mastery Practice Roadmap ───────────────────────
+  {
+    id: 'py-frameworks-mastery',
+    moduleId: 'python-backend',
+    phaseId: 'py-django',
+    phaseNumber: 4,
+    order: 7,
+    title: 'Framework Mastery: Practice Roadmap & Resources',
+    description:
+      'Turn framework knowledge into production skill with a structured 4-week practice roadmap, curated learning resources, and a capstone that compares Django, Flask, and FastAPI implementations.',
+    duration: '65 min',
+    difficulty: 'intermediate',
+    objectives: [
+      'Follow a complete practice system for Django, DRF, Flask, and FastAPI',
+      'Use trusted references (official docs + W3Schools + deep-dive tutorials) effectively',
+      'Build the same backend feature set with multiple frameworks to understand trade-offs',
+      'Create a portfolio-ready capstone with tests, docs, and deployment checklist',
+    ],
+    content: [
+      {
+        type: 'text',
+        markdown: `## From "I Watched Tutorials" to "I Can Ship"
+
+To truly master backend frameworks, you need three loops:
+
+1. **Learn** a concept quickly (docs/tutorial references)
+2. **Build** a focused mini-feature immediately
+3. **Review** with tests, profiling, and refactors
+
+This lesson gives you a concrete roadmap you can repeat for any framework in your career.`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Same feature, three frameworks',
+        content:
+          'The capstone suggestion here is intentional: rebuild one bounded domain (auth + CRUD + tests) in Django, Flask, and FastAPI. You will feel where ORM/admin saves time vs where explicit wiring and async APIs win. That contrast sticks better than three separate tutorials.',
+      },
+      {
+        type: 'text',
+        markdown: `## Curated Resource Map (Use in This Order)
+
+### Django + DRF
+- Official docs: [Django Docs](https://docs.djangoproject.com/en/stable/) and [DRF Docs](https://www.django-rest-framework.org/)
+- Fast concept refresh: [W3Schools Django](https://www.w3schools.com/django/)
+- Practical deep dives: [Real Python Django](https://realpython.com/tutorials/django/)
+
+### Flask
+- Official docs: [Flask Documentation](https://flask.palletsprojects.com/)
+- Fast concept refresh: [W3Schools Flask](https://www.w3schools.com/python/flask_intro.asp)
+- Practical deep dives: [Real Python Flask](https://realpython.com/tutorials/flask/)
+
+### FastAPI
+- Official docs: [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- Fast concept refresh: [W3Schools FastAPI](https://www.w3schools.com/python/fastapi/)
+- Practical deep dives: [FastAPI Tutorial by TestDriven.io](https://testdriven.io/blog/fastapi-crud/)
+
+### Shared Backend Foundations
+- HTTP and REST conventions: [MDN HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)
+- SQL refresher: [W3Schools SQL](https://www.w3schools.com/sql/)
+- API testing: [Postman Learning Center](https://learning.postman.com/)`,
+      },
+      {
+        type: 'callout',
+        tone: 'important',
+        title: 'How to Use Online Resources Correctly',
+        content:
+          'Use W3Schools for speed and recall, official docs for correctness, and long-form tutorials for context. Never rely on only one source. The sequence should be: W3Schools (5-10 min) -> official docs (20 min) -> implementation in your own project (40+ min).',
+      },
+      {
+        type: 'text',
+        markdown: `## 4-Week Framework Practice Plan
+
+### Week 1: Django foundation sprint
+- Build models, migrations, admin customization, auth flow
+- Deliverable: content management app with role-based access
+- Practice target: 12-15 endpoints/pages + 10 tests
+
+### Week 2: DRF API sprint
+- Build serializers, viewsets, filtering, pagination, JWT auth
+- Deliverable: production-style \`/api/v1\` service with OpenAPI docs
+- Practice target: 8-10 API endpoints + 12 API tests
+
+### Week 3: Flask microservice sprint
+- Build app factory structure, SQLAlchemy models, Marshmallow validation
+- Deliverable: small service for notifications/webhooks
+- Practice target: 5-7 endpoints + health checks + metrics endpoint
+
+### Week 4: FastAPI performance sprint
+- Build async endpoints, background tasks, middleware, structured errors
+- Deliverable: high-throughput API with request ID and timing headers
+- Practice target: 8+ endpoints + load-test baseline + profiling notes`,
+      },
+      {
+        type: 'code',
+        language: 'text',
+        filename: 'practice-checklist.md',
+        code: `# Framework Mastery Daily Checklist
+
+- [ ] Read one short external reference (15-25 min max)
+- [ ] Implement one feature without copy-pasting full snippets
+- [ ] Write at least one test for the new feature
+- [ ] Verify API behavior in Swagger/Postman/curl
+- [ ] Log one "what I misunderstood today" note
+- [ ] Refactor one small area for clarity/performance
+
+# Weekly Demo Checklist
+
+- [ ] Record a 3-5 min walkthrough (routes, architecture, trade-offs)
+- [ ] Show test run output
+- [ ] Show one performance/security improvement
+- [ ] Document "what I'd improve next"`,
+        explanation:
+          'This checklist keeps learning active and measurable. If you skip tests and demos, knowledge feels good but does not stick in real interviews or production work.',
+      },
+      {
+        type: 'exercise',
+        title: 'Capstone: One Product API, Three Frameworks',
+        description:
+          'Build the same "Product Catalog + Orders" backend three times: (A) Django + DRF, (B) Flask + SQLAlchemy, (C) FastAPI + Pydantic. Implement identical features: CRUD for products, list/search/filter, order creation, auth-protected admin routes, /health and /health/db, pagination, and error format. Then write a short comparison doc explaining when to choose each framework.',
+        language: 'python',
+        starterCode: `# Goal: maintain the same API contract across all frameworks.
+
+# Required endpoints:
+# GET    /products
+# POST   /products
+# GET    /products/{id}
+# PATCH  /products/{id}
+# DELETE /products/{id}
+# POST   /orders
+# GET    /orders/{id}
+# GET    /health
+# GET    /health/db
+
+# Required extras:
+# - JWT authentication for admin-only writes
+# - Pagination + search query params
+# - Consistent error response format
+# - Test suite for each implementation
+
+# Suggested folder structure:
+# projects/
+#   django_drf_api/
+#   flask_api/
+#   fastapi_api/
+#   comparison.md`,
+        solution: `# Expected outcome (high-level):
+# 1) Three runnable services with the same endpoint contract.
+# 2) At least 8 tests per service (24+ total).
+# 3) comparison.md that includes:
+#    - Framework learning curve
+#    - Boilerplate vs productivity
+#    - Performance observations
+#    - Best use-cases
+#
+# Example comparison summary:
+# - Django+DRF: fastest for large business apps with auth/admin needs.
+# - Flask: best when you need minimal structure and full control.
+# - FastAPI: best for modern async APIs and typed validation-heavy services.`,
+        hints: [
+          'Start with the API contract first, then implement each framework against that contract',
+          'Keep one shared Postman collection so all three services are tested consistently',
+          'Timebox each framework implementation to avoid over-engineering',
+          'Measure at least one practical metric (response time, lines of code, or setup time)',
+        ],
+      },
+      {
+        type: 'callout',
+        tone: 'production',
+        title: 'Portfolio Upgrade',
+        content:
+          'A side-by-side framework capstone is high-signal for interviews. It proves architecture judgment, not just syntax familiarity. Include README screenshots, test coverage, and a short trade-off matrix.',
       },
     ],
   },

@@ -1,4 +1,6 @@
 import type { Lesson } from '@/types/lesson'
+import { withEstimatedDuration } from '@/lib/lesson-duration'
+import { mergeReviewerEnhancements } from './reviewer-enhancements'
 import { pythonBasicsLessons } from './phase-1-python-basics'
 import { pythonAppliedLessons } from './phase-1-python-applied'
 import { pythonDSALessons } from './phase-2-dsa'
@@ -10,7 +12,7 @@ import { testingLessons } from './phase-3-testing'
 import { productionLessons } from './phase-4-production'
 import { pythonReferenceLessons } from './phase-9-python-reference'
 
-export const pythonBackendLessons: Lesson[] = [
+const rawPythonLessons: Lesson[] = [
   ...pythonBasicsLessons,
   ...pythonAppliedLessons,
   ...pythonDSALessons,
@@ -22,6 +24,17 @@ export const pythonBackendLessons: Lesson[] = [
   ...productionLessons,
   ...pythonReferenceLessons,
 ]
+
+function applyReviewerPass(lesson: Lesson): Lesson {
+  const withContent = {
+    ...lesson,
+    content: mergeReviewerEnhancements(lesson.id, lesson.content),
+  }
+  return withEstimatedDuration(withContent)
+}
+
+/** Reviewer pass merged + accurate 0.5h-step durations (beginner pace). */
+export const pythonBackendLessons: Lesson[] = rawPythonLessons.map(applyReviewerPass)
 
 export function getLessonById(id: string): Lesson | undefined {
   return pythonBackendLessons.find(l => l.id === id)

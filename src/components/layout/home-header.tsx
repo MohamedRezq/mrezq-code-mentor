@@ -37,10 +37,22 @@ export function HomeHeader() {
             </button>
           )}
           <Link
+            href="/login"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground px-3 py-2 hidden sm:inline"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            className="text-sm font-semibold border border-border px-4 py-2 rounded-lg hover:bg-muted transition-colors hidden sm:inline"
+          >
+            Sign up
+          </Link>
+          <Link
             href="/learn/ai-engineering"
             className="flex items-center gap-2 text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Start Learning <ArrowRight className="w-4 h-4" />
+            Start <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

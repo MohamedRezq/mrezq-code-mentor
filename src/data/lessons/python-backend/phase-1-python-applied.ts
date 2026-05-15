@@ -69,6 +69,13 @@ qs = urlencode({"q": "python web", "page": "2"})
 print(qs)  # q=python+web&page=2`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`if __name__ == "__main__"`',
+        content:
+          'When Python loads a file, it sets `__name__` to `"__main__"` only for the entry file you ran (`python app/cli.py`). When the same file is imported elsewhere, `__name__` is the module path (e.g. `app.cli`). Put demos and argparse under the guard so `import app.cli` does not run your CLI side effects.',
+      },
+      {
         type: 'exercise',
         title: 'Find project root marker',
         description:
@@ -165,6 +172,13 @@ Counter("mississippi")["s"]  # 4
 q: deque[str] = deque()
 q.append("job1")
 q.popleft()`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Shallow copy vs deep copy',
+        content:
+          '`dict.copy()`, slicing `[:]`, and `list(...)` make a **shallow** copy: the outer container is new, but nested mutable objects are still shared. `copy.deepcopy` walks the graph and duplicates nested containers. For immutable innards (ints, strs, tuples of immutables), shallow is enough.',
       },
       {
         type: 'callout',
@@ -271,6 +285,13 @@ with path.open("r", encoding="utf-8") as fh:
         process(line)  # type: ignore[name-defined]`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`try` / `except` / `else` / `finally`',
+        content:
+          '`except` runs only on matching exceptions. `else` runs if no exception escaped the `try`. `finally` always runs (cleanup, closing sockets) — even after `return` inside `try`. Prefer `with open(...) as f:` over manual `try/finally` for files; the context manager closes the handle for you.',
+      },
+      {
         type: 'exercise',
         title: 'Safe integer parse',
         description:
@@ -352,6 +373,13 @@ parsed = datetime.fromisoformat(roundtrip["at"].replace("Z", "+00:00"))
 # Offsets
 utc = timezone.utc
 later = datetime.now(utc) + timedelta(hours=2)`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`json.loads` vs `json.dumps`',
+        content:
+          '`loads` = **load string** (JSON text → Python objects). `dumps` = **dump string** (Python → JSON text). For files use `json.load` / `json.dump` with an open file handle. `default=` on `dumps` teaches the encoder how to serialize non-JSON-native types like `datetime`.',
       },
       {
         type: 'callout',
@@ -440,6 +468,13 @@ re.findall(r"\\d+", "a1b2")   # ["1", "2"]
 
 m = re.fullmatch(r"[a-z]{3}", "abc")
 m is not None  # True`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`re.match` vs `search` vs `fullmatch`',
+        content:
+          '`match` anchors at the **start** of the string only (as if the pattern had `\\A`). `search` scans until it finds the first match anywhere. `fullmatch` requires the pattern to cover the **entire** string (common for validators). When unsure, `search` + groups or `fullmatch` for strict inputs.',
       },
       {
         type: 'exercise',
@@ -537,6 +572,13 @@ class Account:
 
     def __repr__(self) -> str:
         return f"Account(owner_id={repr(self.owner_id)}, balance={self._balance:.2f})"`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`Protocol` vs ABC inheritance',
+        content:
+          'A `Protocol` describes **shape**: “anything with these methods is acceptable.” Type checkers enforce it; at runtime Python does not wrap objects. Inheritance from `ABC` + `@abstractmethod` forces subclasses to opt in explicitly. Protocols shine for adapters (DB backends, HTTP clients) without importing heavy base classes.',
       },
       {
         type: 'exercise',
@@ -663,6 +705,13 @@ def transaction():
     except Exception:
         print("ROLLBACK")
         raise`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Generators and lazy iteration',
+        content:
+          'A function with `yield` returns a **generator iterator** — values are computed on demand, not stored in a list. That keeps memory flat when streaming logs or paginating DB rows. Each `for` over a generator advances execution until the next `yield` or `StopIteration`.',
       },
       {
         type: 'exercise',

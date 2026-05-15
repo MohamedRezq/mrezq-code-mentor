@@ -67,6 +67,13 @@ print("User:", user, "retries:", MAX_RETRIES, sep=" | ")
       },
       {
         type: 'callout',
+        tone: 'clarification',
+        title: 'REPL vs running a file',
+        content:
+          'REPL (`python` with no file): each line runs immediately — great for experiments; nothing is saved unless you copy it out. A `.py` file runs top to bottom once; that is what you ship, test, and deploy. Use the REPL to probe APIs; use files for anything you need tomorrow.',
+      },
+      {
+        type: 'callout',
         tone: 'production',
         title: 'Indentation is syntax',
         content:
@@ -152,6 +159,20 @@ float("3.5")       # 3.5
 str(99)            # "99"
 bool("")           # False — empty string is falsy
 bool("no")         # True — non-empty string is truthy`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`isinstance` vs `type()`',
+        content:
+          'Prefer `isinstance(x, int)` over `type(x) is int`. The former is True for subclasses (e.g. `bool` is a subclass of `int` — usually you still want separate branches for bool). `type(x) is int` rejects subclasses and is rarely what you want.',
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Strings never change in place',
+        content:
+          'Every method like `.strip()` or `.lower()` returns a new `str`. Assign back: `s = s.strip()`. Slicing `s[1:4]` also builds a new string. That is why building huge strings in a loop with `+=` is slow — use `list` + `join` or `io.StringIO`.',
       },
       {
         type: 'code',
@@ -298,6 +319,20 @@ n = 10
 n += 5`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Python `or` / `and` return values, not only True/False',
+        content:
+          'For `X or Y`, Python evaluates `X` first. If `X` is truthy, it returns `X` and never evaluates `Y`. If `X` is falsy, it returns `Y`. So `"ok" or "fallback"` → `"ok"`, and `"" or "fallback"` → `"fallback"`. Same idea for `and`: it stops at the first falsy operand and returns that value; if all are truthy, it returns the last one. Common idiom: `label = user_input or "Anonymous"`.',
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`is` vs `==` (especially `None`)',
+        content:
+          '`==` asks “equal values?” (calls `__eq__`). `is` asks “same object in memory?”. Always write `x is None` or `x is not None` — singletons like `None` should use `is`. For lists, `[1] == [1]` is True but `[1] is [1]` is False because two separate list objects were allocated.',
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'walrus.py',
@@ -312,6 +347,13 @@ if (n := len(data)) > 100:
 #     process(chunk)
 
 # Bad: cramming := into every if — hurts readability`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Walrus `:=` in one breath',
+        content:
+          '`:=` assigns a name and produces that value inside an expression — useful when you need the result twice (e.g. `if (m := pattern.search(s)): return m.group(1)`). It is still just assignment: obey scoping rules and do not use it when a plain assignment on the line above reads clearer.',
       },
       {
         type: 'exercise',
@@ -380,6 +422,13 @@ def normalize_method(raw: str) -> str | None:
 
 # Ternary
 label = "even" if n % 2 == 0 else "odd"`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Chained comparisons',
+        content:
+          '`a < b < c` is evaluated as `(a < b) and (b < c)` with `b` evaluated once. It is both readable and correct for ranges (e.g. `0 <= i < len(xs)`). Do not chain mixed operators in ways that confuse readers — when in doubt, use parentheses or separate `if`s.',
       },
       {
         type: 'code',
@@ -494,6 +543,13 @@ for item in items:
         break
 else:
     found = None`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`for` … `else` (no `break`)',
+        content:
+          'The `else` block on a `for` runs only if the loop finished without `break`. If `break` fired, `else` is skipped. Use it for “search failed” patterns so you do not need a separate flag variable. `while` supports the same `else` semantics.',
       },
       {
         type: 'code',
@@ -619,6 +675,13 @@ def good_acc(item, acc: list[int] | None = None) -> list[int]:
 
 pow2 = lambda x: x * x  # sparingly
 sorted(users, key=lambda u: u["name"])`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Parameter order (positional → keyword-only)',
+        content:
+          'Python 3.8+: you can write `def f(a, /, b, c=0, *args, d, **kwargs)` — everything before `/` is positional-only; `*` forces keyword-only names after it (here `d` must be passed by name). Most APIs use `*,` alone to make flags explicit: `def run(*, dry_run: bool = False)`.',
       },
       {
         type: 'callout',

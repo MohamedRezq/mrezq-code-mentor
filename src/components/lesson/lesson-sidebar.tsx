@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { Module, PhaseInfo } from '@/types/lesson'
 import { getLessonsByPhase } from '@/data/lessons'
+import { useProgress } from '@/components/progress/progress-provider'
 
 interface LessonSidebarProps {
   module: Module
@@ -21,29 +22,32 @@ function PhaseSection({
   activeLessonId?: string
 }) {
   const lessons = getLessonsByPhase(phase.id)
-  const isActivePhase = lessons.some(l => l.id === activeLessonId)
+  const isActivePhase = lessons.some((l) => l.id === activeLessonId)
   const [open, setOpen] = useState(isActivePhase)
+  const { isLessonComplete } = useProgress()
 
   return (
     <div>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/60 group"
       >
         <span className="text-left">
           Phase {phase.number}: {phase.title}
         </span>
-        {open
-          ? <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-          : <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-        }
+        {open ? (
+          <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+        ) : (
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+        )}
       </button>
 
       {open && (
         <div className="mt-1 mb-2 space-y-0.5">
-          {lessons.map(lesson => {
+          {lessons.map((lesson) => {
             const isActive = lesson.id === activeLessonId
-            const isComplete = false // TODO: wire to progress store
+            const isComplete = isLessonComplete(lesson.id)
             return (
               <Link
                 key={lesson.id}
@@ -55,7 +59,9 @@ function PhaseSection({
                 }`}
               >
                 {isComplete ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-green-500" />
+                  <CheckCircle2
+                    className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-green-600'}`}
+                  />
                 ) : (
                   <Circle className="w-3.5 h-3.5 shrink-0 opacity-40" />
                 )}
@@ -72,10 +78,14 @@ function PhaseSection({
 
 export function LessonSidebar({ module, activeLessonId }: LessonSidebarProps) {
   const totalLessons = module.phases.reduce((sum, p) => sum + getLessonsByPhase(p.id).length, 0)
+  const allLessonIds = module.phases.flatMap((p) =>
+    getLessonsByPhase(p.id).map((l) => l.id)
+  )
+  const { isAuthenticated, moduleProgress } = useProgress()
+  const progress = moduleProgress(allLessonIds)
 
   return (
-    <aside className="w-72 shrink-0 border-r border-border bg-background h-full overflow-y-auto">
-      {/* Module Header */}
+    <aside className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-y-auto border-r border-border bg-background">
       <div className="px-4 py-5 border-b border-border">
         <Link
           href={`/learn/${module.id}`}
@@ -84,12 +94,18 @@ export function LessonSidebar({ module, activeLessonId }: LessonSidebarProps) {
           ← Module {module.number}
         </Link>
         <h2 className="font-bold text-foreground mt-1 leading-snug">{module.title}</h2>
-        <p className="text-xs text-muted-foreground mt-1">{totalLessons} lessons · {module.duration}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {totalLessons} lessons · {module.duration}
+        </p>
+        {isAuthenticated && allLessonIds.length > 0 && (
+          <p className="text-xs font-medium text-primary mt-2 tabular-nums">
+            {progress.completed}/{progress.total} completed ({progress.percent}%)
+          </p>
+        )}
       </div>
 
-      {/* Phases + Lessons */}
       <nav className="px-2 py-4 space-y-1">
-        {module.phases.map(phase => (
+        {module.phases.map((phase) => (
           <PhaseSection
             key={phase.id}
             phase={phase}

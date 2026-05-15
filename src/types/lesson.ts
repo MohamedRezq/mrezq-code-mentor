@@ -1,6 +1,6 @@
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 export type Track = 'Foundation' | 'Technical' | 'Specialization' | 'Leadership'
-export type CalloutTone = 'info' | 'warning' | 'tip' | 'production' | 'important'
+export type CalloutTone = 'info' | 'warning' | 'tip' | 'production' | 'important' | 'clarification'
 
 export interface Module {
   id: string
@@ -30,7 +30,10 @@ export interface LessonMeta {
   phaseNumber: number
   title: string
   description: string
+  /** Display duration, e.g. "1h", "1.5h" — derived from content when using withEstimatedDuration */
   duration: string
+  /** Estimated minutes (reading + exercises); set by duration helper */
+  durationMinutes?: number
   difficulty: Difficulty
   order: number
 }

@@ -56,10 +56,33 @@ That page includes syntax tables, built-ins, comprehensions, file/JSON/datetime 
 | Regex | Lesson 11 |
 | OOP · dataclass · Protocol | Lesson 12 |
 | Generators · decorators · context | Lesson 13 |
-| Tooling: venv, ruff, pytest, asyncio | Phase 3 |
-| httpx · dotenv · argparse | \`py-fullstack-scripts\` |
-| Django · Flask · FastAPI → Production | Phases 4–8 |
+| Big O · lists/stacks · hashes · trees · sort/search | Phase 2 (DSA) |
+| uv · ruff · mypy · pytest · asyncio scripts | Phase 3 |
+| Django · DRF · Flask | Phase 4 |
+| FastAPI · Pydantic v2 · auth · middleware | Phase 5 |
+| SQLAlchemy · Alembic · Redis · Postgres tuning | Phase 6 |
+| pytest · API tests · patterns | Phase 7 |
+| Docker · Celery · observability · deploy | Phase 8 |
 `,
+      },
+      {
+        type: 'exercise',
+        title: 'Spaced repetition checklist',
+        description:
+          'Without opening other lessons, write (in comments) one sentence each: when you pick `deque` over `list` for a queue; what `alembic upgrade head` does; what problem `return_exceptions=True` solves in `asyncio.gather`.',
+        language: 'python',
+        starterCode: `# 1. deque vs list for queue:
+#
+# 2. alembic upgrade head:
+#
+# 3. gather return_exceptions:
+#
+`,
+        solution: `# 1. deque gives O(1) pops from the left; list.pop(0) is O(n).
+# 2. Applies all pending DB migrations to match the latest schema revision.
+# 3. One failing task does not cancel the others; you get exceptions as results to handle per task.
+`,
+        hints: ['Recall DSA lesson on queues', 'Databases phase on migrations', 'Concurrency lesson on gather'],
       },
     ],
   },

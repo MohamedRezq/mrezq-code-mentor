@@ -130,6 +130,13 @@ conda install -c conda-forge numpy scipy pandas
 # ✗ Web backends, APIs, CLIs — use uv/venv instead`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'venv vs global `pip install`',
+        content:
+          '`python -m pip install foo` installs into **whatever environment owns that `python`**. If you forgot to activate `.venv`, you just polluted the global interpreter. Prefer `uv run` / `poetry run` / explicit `.venv/bin/pip` so installs always land in the project.',
+      },
+      {
         type: 'exercise',
         title: 'Project Bootstrap Script',
         description: 'Write a shell script `bootstrap.sh` that: (1) verifies Python 3.11+ is available, (2) creates a .venv environment, (3) installs from requirements.txt if it exists, (4) prints the Python version and pip version, (5) prints instructions to activate.',
@@ -173,6 +180,22 @@ fi
 echo ""
 echo "Activate with: source .venv/bin/activate"`,
         hints: ['Use python3 --version and parse the output with awk/cut', 'Check for .venv directory before creating', 'Reference pip as .venv/bin/pip to use the venv pip without activating'],
+      },
+      {
+        type: 'exercise',
+        title: 'Pin interpreter with .python-version',
+        description:
+          'Write a short `README.snippet.md` (as plain text in your answer) listing three bullets: (1) why you commit `pyproject.toml` but not `.venv/`, (2) what `uv sync` does, (3) one command to run tests in an uv project without manually activating a venv.',
+        language: 'python',
+        starterCode: `# Write your three-bullet checklist as comments below (no code required).
+# 1.
+# 2.
+# 3.
+`,
+        solution: `# 1. Commit pyproject.toml (and uv.lock) so everyone resolves the same deps; never commit .venv — it is machine-local and huge.
+# 2. uv sync installs/updates the virtualenv to match pyproject.toml + lockfile (like npm ci + install).
+# 3. uv run pytest   # runs pytest inside the project environment without activating`,
+        hints: ['Think: lockfile + reproducibility', 'uv run <cmd> always uses the project venv'],
       },
     ],
   },
@@ -234,6 +257,13 @@ pip uninstall requests
 # pytest>=7.4.0
 # ruff>=0.1.0
 # mypy>=1.7.0`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`requirements.txt` vs lockfiles',
+        content:
+          '`pip freeze` captures whatever happened to be installed — good for quick snapshots, weak for reproducibility. A **lockfile** (Poetry, uv, pip-tools) resolves the full dependency graph once and pins exact versions of transitive deps. Teams should commit the lockfile and install from it in CI and production.',
       },
       {
         type: 'code',
@@ -388,6 +418,47 @@ def audit_requirements(filepath: str) -> None:
             print(f"  {spec}  →  latest: {latest or 'unknown'}")`,
         hints: ['re.split on [>=<!] extracts the package name', 'Use urllib.request (stdlib) to call the PyPI JSON API', 'The PyPI JSON API is at https://pypi.org/pypi/{package}/json'],
       },
+      {
+        type: 'exercise',
+        title: 'Optional dependency groups',
+        description:
+          'Given `pyproject` as a dict matching PEP 621 shape (`project` → `optional-dependencies` mapping group names to requirement string lists), return sorted group names where any requirement line contains `"pytest"` (case-insensitive).',
+        language: 'python',
+        starterCode: `def dev_groups_with_pytest(pyproject: dict) -> list[str]:
+    ...
+
+
+sample = {
+    "project": {
+        "optional-dependencies": {
+            "dev": ["pytest>=8", "ruff"],
+            "docs": ["sphinx"],
+            "lint": ["pytest-cov"],
+        }
+    }
+}
+print(dev_groups_with_pytest(sample))  # ["dev", "lint"]`,
+        solution: `def dev_groups_with_pytest(pyproject: dict) -> list[str]:
+    opt = pyproject.get("project", {}).get("optional-dependencies", {})
+    out: list[str] = []
+    for name, lines in opt.items():
+        if any("pytest" in line.lower() for line in lines):
+            out.append(name)
+    return sorted(out)
+
+
+sample = {
+    "project": {
+        "optional-dependencies": {
+            "dev": ["pytest>=8", "ruff"],
+            "docs": ["sphinx"],
+            "lint": ["pytest-cov"],
+        }
+    }
+}
+print(dev_groups_with_pytest(sample))`,
+        hints: ['Iterate optional-dependencies items', 'Use any(...) with substring check'],
+      },
     ],
   },
 
@@ -482,6 +553,13 @@ def first(items: Sequence[T]) -> T | None:
     return items[0] if items else None
 
 result: str | None = first(["a", "b"])   # mypy knows it's str | None`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'mypy vs Pydantic',
+        content:
+          '**mypy** checks types at **edit/CI time** — it never runs in production. **Pydantic** validates **at runtime** when data crosses a boundary (HTTP body, env, queue message). Use both: mypy for internal logic, Pydantic for anything untrusted from the wire.',
       },
       {
         type: 'code',
@@ -686,6 +764,13 @@ quote-style = "double"
 indent-style = "space"`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'ruff vs pytest in CI',
+        content:
+          '`ruff check` and `ruff format --check` are **static** — fast, deterministic. `pytest` runs **dynamic** behaviour and can flake on timing. Run ruff first in CI so cheap failures fail the build in seconds; then run the test suite.',
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'test_example.py',
@@ -868,6 +953,13 @@ def test_empty_raises(fn): pytest.raises(ValueError, fn, [])`,
 Your React app sends JSON and bearer tokens. Python tooling should speak the same shapes — it makes debugging production issues much faster.`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: '`load_dotenv()` lookup',
+        content:
+          'By default `load_dotenv()` searches **the current working directory** for `.env`, not necessarily the directory of your script. For CLIs, `cd` into the project root before running, or pass `load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")` so the file is found from the script location.',
+      },
+      {
         type: 'code',
         language: 'bash',
         filename: 'deps.sh',
@@ -1028,6 +1120,13 @@ The **Global Interpreter Lock (GIL)** is a mutex that prevents multiple Python t
 - CPU-bound: **multiprocessing** (separate processes, separate GIL) or C extensions (numpy bypasses GIL)
 
 > Python 3.13 introduces "free-threaded mode" (no GIL) as an experimental option.`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Pick one primary model per workload',
+        content:
+          'Mixing threads and asyncio in one app is normal at the edges (run async from a thread pool), but each **CPU-heavy** unit of work should live in **one** clear model: threads for blocking I/O, asyncio for many concurrent waits, processes for parallel CPU. Crossing boundaries has a cost — profile before splitting.',
       },
       {
         type: 'code',

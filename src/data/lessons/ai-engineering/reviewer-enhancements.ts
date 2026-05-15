@@ -1,0 +1,35 @@
+import type { LessonEnhancement } from '@/lib/curriculum/reviewer-types'
+import { clarify, roadmapIntro } from '@/lib/curriculum/reviewer-merge'
+
+export const AI_REVIEWER: Record<string, LessonEnhancement> = {
+  'py-basics': { intro: [roadmapIntro('ai-engineer', 'Python for AI', 'syntax for LLM scripts')] },
+  'py-data-structures': { intro: [roadmapIntro('python', 'Python for AI', 'lists, dicts for prompts')] },
+  'py-oop-pydantic': { intro: [roadmapIntro('ai-engineer', 'Python for AI', 'Pydantic models for APIs')] },
+  'py-files-json': { intro: [roadmapIntro('python', 'Python for AI', 'JSON logs, datasets')] },
+  'py-http-requests': { intro: [roadmapIntro('ai-engineer', 'Python for AI', 'httpx to LLM APIs')] },
+  'py-async': {
+    intro: [roadmapIntro('ai-engineer', 'Python for AI', 'async batch requests')],
+    outro: [clarify('Batch async', 'Use `asyncio.gather` to call multiple LLM endpoints concurrently — watch rate limits.')],
+  },
+  'llm-how-it-works': { intro: [roadmapIntro('ai-engineer', 'LLM APIs', 'tokens, context window, temperature')] },
+  'llm-openai-api': { intro: [roadmapIntro('ai-engineer', 'LLM APIs', 'OpenAI chat completions')] },
+  'llm-claude-api': { intro: [roadmapIntro('ai-engineer', 'LLM APIs', 'Anthropic messages API')] },
+  'llm-prompt-fundamentals': { intro: [roadmapIntro('prompt-engineering', 'LLM APIs', 'system/user prompts, few-shot')] },
+  'llm-chain-of-thought': { intro: [roadmapIntro('ai-engineer', 'LLM APIs', 'reasoning, step-by-step')] },
+  'llm-structured-output': { intro: [roadmapIntro('ai-engineer', 'LLM APIs', 'JSON mode, tool schemas')] },
+  'llm-streaming': { intro: [roadmapIntro('ai-engineer', 'LLM APIs', 'SSE streaming tokens')] },
+  'rag-embeddings': { intro: [roadmapIntro('ai-engineer', 'RAG', 'embeddings, cosine similarity')] },
+  'rag-vector-databases': { intro: [roadmapIntro('ai-engineer', 'RAG', 'vector DBs, metadata filters')] },
+  'rag-pipeline': { intro: [roadmapIntro('ai-engineer', 'RAG', 'chunking, retrieval, generation')] },
+  'rag-hybrid-search': { intro: [roadmapIntro('ai-engineer', 'RAG', 'keyword + vector hybrid')] },
+  'rag-advanced': { intro: [roadmapIntro('ai-engineer', 'RAG', 'reranking, evaluation')] },
+  'agents-intro': { intro: [roadmapIntro('ai-agents', 'Agents', 'ReAct, tool loops')] },
+  'agents-tool-calling': { intro: [roadmapIntro('ai-agents', 'Agents', 'function calling, schemas')] },
+  'agents-langgraph': { intro: [roadmapIntro('ai-agents', 'Agents', 'graphs, state machines')] },
+  'agents-multi-agent': { intro: [roadmapIntro('ai-agents', 'Agents', 'orchestration, handoffs')] },
+  'agents-context-engineering': { intro: [roadmapIntro('ai-engineer', 'Agents', 'context windows, memory')] },
+  'prod-evaluation': { intro: [roadmapIntro('ai-engineer', 'Production', 'eval datasets, metrics')] },
+  'prod-finetuning': { intro: [roadmapIntro('ai-engineer', 'Production', 'when to fine-tune vs RAG')] },
+  'prod-cost-optimization': { intro: [roadmapIntro('ai-engineer', 'Production', 'token cost, caching')] },
+  'prod-guardrails': { intro: [roadmapIntro('ai-red-teaming', 'Production', 'safety, PII, jailbreaks')] },
+}

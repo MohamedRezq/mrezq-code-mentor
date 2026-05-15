@@ -12,7 +12,7 @@ export const pythonLessons: Lesson[] = [
     order: 1,
     title: 'Python Basics for AI Engineers',
     description: 'Variables, types, functions, and f-strings — the building blocks every AI script uses, compared to JavaScript.',
-    duration: '20 min',
+    duration: '30 min',
     difficulty: 'beginner',
     objectives: [
       'Write type-annotated Python variables and functions',
@@ -212,6 +212,48 @@ print(build_system_prompt("SQL tutor", "beginner", "Arabic"))`,
           'Interpolate all three parameters into the string',
         ],
       },
+      {
+        type: 'exercise',
+        title: 'Merge model name with **kwargs',
+        description:
+          'Implement `build_request_body(model: str, **params) -> dict[str, object]` that returns `{"model": model}` merged with every keyword argument (e.g. `temperature`, `max_tokens`). This mirrors how LLM client helpers flatten options.',
+        language: 'python',
+        starterCode: `def build_request_body(model: str, **params: object) -> dict[str, object]:
+    ...
+
+
+print(build_request_body("gpt-4o-mini", temperature=0.2, max_tokens=128))
+# Expect: model key plus temperature and max_tokens`,
+        solution: `def build_request_body(model: str, **params: object) -> dict[str, object]:
+    return {"model": model, **params}
+
+
+print(build_request_body("gpt-4o-mini", temperature=0.2, max_tokens=128))`,
+        hints: ['Start from `{"model": model}` and unpack `params` with `**` into the same dict'],
+      },
+      {
+        type: 'exercise',
+        title: 'Optional model name',
+        description:
+          'Write `describe_run(model: str | None, run_id: str) -> str`. If `model` is `None` or empty after stripping, use the literal `"unknown-model"` (good use of `or`). Always include `run_id` in the f-string.',
+        language: 'python',
+        starterCode: `def describe_run(model: str | None, run_id: str) -> str:
+    ...
+
+
+print(describe_run("claude-3-5-sonnet", "run-1"))
+print(describe_run(None, "run-2"))
+print(describe_run("   ", "run-3"))`,
+        solution: `def describe_run(model: str | None, run_id: str) -> str:
+    name = (model or "").strip() or "unknown-model"
+    return f"run={run_id} model={name}"
+
+
+print(describe_run("claude-3-5-sonnet", "run-1"))
+print(describe_run(None, "run-2"))
+print(describe_run("   ", "run-3"))`,
+        hints: ['Strip first if model is a string; `None` has no strip — branch or use `(model or "")`', '`or` picks the first truthy value'],
+      },
     ],
   },
 
@@ -226,7 +268,7 @@ print(build_system_prompt("SQL tutor", "beginner", "Arabic"))`,
     order: 2,
     title: 'Python Data Structures for AI',
     description: 'Lists, dictionaries, comprehensions, and nested data — the patterns you will use when processing API responses and building data pipelines.',
-    duration: '25 min',
+    duration: '35 min',
     difficulty: 'beginner',
     objectives: [
       'Manipulate lists with comprehensions and built-in methods',
@@ -425,6 +467,52 @@ print(extract_successful_responses(responses))
           'Access nested keys: r["choices"][0]["finish_reason"]',
         ],
       },
+      {
+        type: 'exercise',
+        title: 'Zip sources to scores',
+        description:
+          'Given parallel lists `sources` (str) and `scores` (float), return a list of dicts `{"source": s, "score": round(x, 3)}` for each pair. If lengths differ, stop at the shorter length (like `zip` does).',
+        language: 'python',
+        starterCode: `def attach_scores(sources: list[str], scores: list[float]) -> list[dict[str, object]]:
+    ...
+
+
+print(attach_scores(["a.pdf", "b.pdf"], [0.91, 0.77, 0.5]))`,
+        solution: `def attach_scores(sources: list[str], scores: list[float]) -> list[dict[str, object]]:
+    return [{"source": s, "score": round(x, 3)} for s, x in zip(sources, scores)]
+
+
+print(attach_scores(["a.pdf", "b.pdf"], [0.91, 0.77, 0.5]))`,
+        hints: ['`zip` stops at the shortest iterable', 'Use round(x, 3) inside the comprehension'],
+      },
+      {
+        type: 'exercise',
+        title: 'Deep-get with defaults',
+        description:
+          'Implement `get_usage_total(usage: dict) -> int` that returns `usage["total_tokens"]` if present; otherwise try `usage["input_tokens"] + usage["output_tokens"]` when both exist; otherwise return `0`. Use `.get()` so missing keys never raise.',
+        language: 'python',
+        starterCode: `def get_usage_total(usage: dict) -> int:
+    ...
+
+
+print(get_usage_total({"total_tokens": 42}))
+print(get_usage_total({"input_tokens": 10, "output_tokens": 5}))
+print(get_usage_total({}))`,
+        solution: `def get_usage_total(usage: dict) -> int:
+    if "total_tokens" in usage:
+        return int(usage["total_tokens"])
+    inp = usage.get("input_tokens")
+    out = usage.get("output_tokens")
+    if inp is not None and out is not None:
+        return int(inp) + int(out)
+    return 0
+
+
+print(get_usage_total({"total_tokens": 42}))
+print(get_usage_total({"input_tokens": 10, "output_tokens": 5}))
+print(get_usage_total({}))`,
+        hints: ['Check keys with `in` or compare `.get(...)` to None', 'Cast to int when building the sum'],
+      },
     ],
   },
 
@@ -439,7 +527,7 @@ print(extract_successful_responses(responses))
     order: 3,
     title: 'Python OOP & Pydantic',
     description: 'Classes, dataclasses, and Pydantic models — the tools AI frameworks use internally, and that you will use to structure LLM outputs.',
-    duration: '25 min',
+    duration: '35 min',
     difficulty: 'beginner',
     objectives: [
       'Write Python classes with methods and properties',
@@ -666,6 +754,73 @@ result = JobPosting.model_validate_json(sample_json)
 print(result.job_title)        # Senior AI Engineer
 print(result.required_skills)  # ['Python', 'PyTorch', 'LLMs']`,
       },
+      {
+        type: 'exercise',
+        title: 'Dataclass chunk for RAG',
+        description:
+          'Define a `@dataclass` `Chunk` with fields: `id: str`, `text: str`, `source: str`, `tokens: int = 0`. Add method `preview(self, n: int = 80) -> str` returning the first `n` characters plus `"..."` if `text` is longer than `n`.',
+        language: 'python',
+        starterCode: `from dataclasses import dataclass
+
+
+@dataclass
+class Chunk:
+    ...
+
+
+c = Chunk(id="1", text="A" * 100, source="doc.pdf")
+print(c.preview())
+print(c.preview(10))`,
+        solution: `from dataclasses import dataclass
+
+
+@dataclass
+class Chunk:
+    id: str
+    text: str
+    source: str
+    tokens: int = 0
+
+    def preview(self, n: int = 80) -> str:
+        if len(self.text) <= n:
+            return self.text
+        return self.text[:n] + "..."
+
+
+c = Chunk(id="1", text="A" * 100, source="doc.pdf")
+print(c.preview())
+print(c.preview(10))`,
+        hints: ['Use len(self.text) vs n', 'Slice with [:n]'],
+      },
+      {
+        type: 'exercise',
+        title: 'Pydantic: tool call arguments',
+        description:
+          'Model a function tool call: `name: str` (non-empty), `arguments: dict[str, object]` (default empty dict). Add `Field` so `arguments` defaults to a new dict per instance (use `default_factory`). Parse from JSON string.',
+        language: 'python',
+        starterCode: `from pydantic import BaseModel, Field
+
+
+class ToolCall(BaseModel):
+    ...
+
+
+raw = '{"name": "search", "arguments": {"q": "RAG"}}'
+tc = ToolCall.model_validate_json(raw)
+print(tc.name, tc.arguments)`,
+        solution: `from pydantic import BaseModel, Field
+
+
+class ToolCall(BaseModel):
+    name: str = Field(min_length=1)
+    arguments: dict[str, object] = Field(default_factory=dict)
+
+
+raw = '{"name": "search", "arguments": {"q": "RAG"}}'
+tc = ToolCall.model_validate_json(raw)
+print(tc.name, tc.arguments)`,
+        hints: ['Mutable default: `Field(default_factory=dict)`', '`min_length=1` on name'],
+      },
     ],
   },
 
@@ -680,7 +835,7 @@ print(result.required_skills)  # ['Python', 'PyTorch', 'LLMs']`,
     order: 4,
     title: 'Files, JSON & Environment Variables',
     description: 'Reading documents, handling JSON, and managing API keys securely — foundations for every RAG pipeline and AI application.',
-    duration: '20 min',
+    duration: '35 min',
     difficulty: 'beginner',
     objectives: [
       'Read and write files with pathlib',
@@ -850,6 +1005,99 @@ print(clean)  # {'score': 0.95, 'label': 'positive'}`,
         title: 'Never parse LLM JSON with string manipulation in production',
         content: 'The extract_json_from_text pattern is a workaround for older, less reliable LLMs. In production, use structured output (response_format={"type": "json_object"} in OpenAI, or the Instructor library) to get guaranteed JSON responses. We cover this fully in the Structured Output lesson.',
       },
+      {
+        type: 'exercise',
+        title: 'Required vs optional env',
+        description:
+          'Implement `read_api_key(env: dict[str, str], name: str) -> str` that returns `env[name]` stripped if present and non-empty after strip; otherwise raises `ValueError` with a clear message. Also implement `read_optional_int(env, key, default: int) -> int` using `env.get(key)` — empty or missing means `default`, else `int(value)`.',
+        language: 'python',
+        starterCode: `def read_api_key(env: dict[str, str], name: str) -> str:
+    ...
+
+
+def read_optional_int(env: dict[str, str], key: str, default: int) -> int:
+    ...
+
+
+fake = {"OPENAI_API_KEY": " sk-123 ", "MAX_TOKENS": ""}
+print(read_optional_int(fake, "MAX_TOKENS", 1024))
+print(read_api_key(fake, "OPENAI_API_KEY"))`,
+        solution: `def read_api_key(env: dict[str, str], name: str) -> str:
+    raw = env.get(name)
+    if raw is None or not raw.strip():
+        raise ValueError(f"Missing or empty environment variable: {name}")
+    return raw.strip()
+
+
+def read_optional_int(env: dict[str, str], key: str, default: int) -> int:
+    v = env.get(key)
+    if v is None or not str(v).strip():
+        return default
+    return int(str(v).strip())
+
+
+fake = {"OPENAI_API_KEY": " sk-123 ", "MAX_TOKENS": ""}
+print(read_optional_int(fake, "MAX_TOKENS", 1024))
+print(read_api_key(fake, "OPENAI_API_KEY"))`,
+        hints: ['Treat whitespace-only as empty for the API key', 'int() after strip for optional int'],
+      },
+      {
+        type: 'exercise',
+        title: 'Round-trip JSON config',
+        description:
+          'Write `roundtrip_config(obj: dict) -> dict`: serialize with `json.dumps(..., indent=2)` then parse back with `json.loads` and return the dict. This checks you can losslessly move config through JSON (like saving run settings).',
+        language: 'python',
+        starterCode: `import json
+
+
+def roundtrip_config(obj: dict) -> dict:
+    ...
+
+
+cfg = {"model": "gpt-4o-mini", "temperature": 0.0, "tags": ["dev", "v2"]}
+assert roundtrip_config(cfg) == cfg
+print("ok")`,
+        solution: `import json
+
+
+def roundtrip_config(obj: dict) -> dict:
+    s = json.dumps(obj, indent=2)
+    return json.loads(s)
+
+
+cfg = {"model": "gpt-4o-mini", "temperature": 0.0, "tags": ["dev", "v2"]}
+assert roundtrip_config(cfg) == cfg
+print("ok")`,
+        hints: ['json.dumps then json.loads', 'No need for ensure_ascii in this exercise'],
+      },
+      {
+        type: 'exercise',
+        title: 'Extract JSON from noisy LLM text',
+        description:
+          'Implement `extract_json_from_text(text: str) -> dict` as in the lesson: find substring from first `{` through last `}`, then `json.loads`. Raise `ValueError("no json")` if `{` is missing.',
+        language: 'python',
+        starterCode: `import json
+
+
+def extract_json_from_text(text: str) -> dict:
+    ...
+
+
+print(extract_json_from_text('Sure! {"ok": true} thanks'))`,
+        solution: `import json
+
+
+def extract_json_from_text(text: str) -> dict:
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        raise ValueError("no json")
+    return json.loads(text[start : end + 1])
+
+
+print(extract_json_from_text('Sure! {"ok": true} thanks'))`,
+        hints: ['rfind `}` then slice inclusive end+1', 'json.loads on the slice'],
+      },
     ],
   },
 
@@ -864,13 +1112,13 @@ print(clean)  # {'score': 0.95, 'label': 'positive'}`,
     order: 5,
     title: 'HTTP Requests with httpx',
     description: 'Call external APIs, handle errors, and implement retry logic — the fundamentals of integrating AI services into your applications.',
-    duration: '20 min',
+    duration: '35 min',
     difficulty: 'beginner',
     objectives: [
       'Make synchronous and async HTTP requests with httpx',
       'Handle API errors, timeouts, and rate limiting',
       'Implement exponential backoff retry logic',
-      'Use session reuse for performance',
+      'Use session reuse with httpx.Client for performance',
     ],
     content: [
       {
@@ -1007,6 +1255,70 @@ def get_completion(prompt: str, client: httpx.Client) -> str:
         title: 'Use the official SDKs, not raw httpx',
         content: 'In real projects, use openai.OpenAI() or anthropic.Anthropic() instead of raw httpx calls. The SDKs handle auth, retries, timeouts, and streaming for you. The point of this lesson is to understand what the SDKs do under the hood — which helps you debug them when they fail.',
       },
+      {
+        type: 'exercise',
+        title: 'Which HTTP statuses should retry?',
+        description:
+          'Implement `should_retry_status(code: int) -> bool`: return True for 408, 429, and any 5xx (500–599); False for 401, 403, 404, 422, and 2xx/3xx. This is the decision half of a retry policy (before sleeps and caps).',
+        language: 'python',
+        starterCode: `def should_retry_status(code: int) -> bool:
+    ...
+
+
+for c in [200, 429, 500, 503, 401, 422]:
+    print(c, should_retry_status(c))`,
+        solution: `def should_retry_status(code: int) -> bool:
+    if code == 408 or code == 429:
+        return True
+    return 500 <= code <= 599
+
+
+for c in [200, 429, 500, 503, 401, 422]:
+    print(c, should_retry_status(c))`,
+        hints: ['Use chained comparisons for 5xx', 'Explicit 408 and 429'],
+      },
+      {
+        type: 'exercise',
+        title: 'Exponential backoff delay',
+        description:
+          'Implement `backoff_seconds(attempt_zero_indexed: int, base: float = 1.0) -> float` returning `base * (2 ** attempt)` (no random jitter here). Used after failed HTTP calls before sleeping.',
+        language: 'python',
+        starterCode: `def backoff_seconds(attempt_zero_indexed: int, base: float = 1.0) -> float:
+    ...
+
+
+print([backoff_seconds(i) for i in range(4)])`,
+        solution: `def backoff_seconds(attempt_zero_indexed: int, base: float = 1.0) -> float:
+    return base * (2**attempt_zero_indexed)
+
+
+print([backoff_seconds(i) for i in range(4)])`,
+        hints: ['Attempt 0 → base, attempt 1 → 2*base, ...'],
+      },
+      {
+        type: 'exercise',
+        title: 'Build chat-completions JSON body',
+        description:
+          'Write `chat_completion_body(model: str, user_message: str, max_tokens: int = 256) -> dict` returning the dict you would pass to `httpx.post(..., json=...)`: keys `model`, `messages` (list with one user message dict), `max_tokens`.',
+        language: 'python',
+        starterCode: `def chat_completion_body(model: str, user_message: str, max_tokens: int = 256) -> dict:
+    ...
+
+
+import json
+print(json.dumps(chat_completion_body("gpt-4o-mini", "Hello"), indent=2))`,
+        solution: `def chat_completion_body(model: str, user_message: str, max_tokens: int = 256) -> dict:
+    return {
+        "model": model,
+        "messages": [{"role": "user", "content": user_message}],
+        "max_tokens": max_tokens,
+    }
+
+
+import json
+print(json.dumps(chat_completion_body("gpt-4o-mini", "Hello"), indent=2))`,
+        hints: ['messages is a list of dicts with role and content', 'Include max_tokens at top level'],
+      },
     ],
   },
 
@@ -1021,7 +1333,7 @@ def get_completion(prompt: str, client: httpx.Client) -> str:
     order: 6,
     title: 'Async Python for AI Applications',
     description: 'async/await, asyncio.gather, and concurrent LLM calls — the pattern that makes your AI applications 10x faster when calling multiple models.',
-    duration: '25 min',
+    duration: '40 min',
     difficulty: 'intermediate',
     objectives: [
       'Write and call async functions with await',
@@ -1203,6 +1515,135 @@ async def process_with_rate_limit(
         tone: 'tip',
         title: 'async/await quick rules',
         content: '1. async functions must be awaited when called. 2. You can only await inside an async function. 3. Use asyncio.run() as the entry point in scripts. 4. Use asyncio.gather() for concurrent calls. 5. If you\'re inside a FastAPI route, it\'s already async — just use await directly.',
+      },
+      {
+        type: 'exercise',
+        title: 'Concurrent fake API calls',
+        description:
+          'Implement `async def fake_fetch(label: str, delay: float) -> str` that awaits `asyncio.sleep(delay)` then returns `f"done:{label}"`. Implement `async def run_all(labels: list[str]) -> list[str]` that runs all `fake_fetch(label, 0.05)` concurrently with `asyncio.gather` and returns results in the same order as `labels`.',
+        language: 'python',
+        starterCode: `import asyncio
+
+
+async def fake_fetch(label: str, delay: float) -> str:
+    ...
+
+
+async def run_all(labels: list[str]) -> list[str]:
+    ...
+
+
+print(asyncio.run(run_all(["a", "b", "c"])))`,
+        solution: `import asyncio
+
+
+async def fake_fetch(label: str, delay: float) -> str:
+    await asyncio.sleep(delay)
+    return f"done:{label}"
+
+
+async def run_all(labels: list[str]) -> list[str]:
+    return await asyncio.gather(*[fake_fetch(l, 0.05) for l in labels])
+
+
+print(asyncio.run(run_all(["a", "b", "c"])))`,
+        hints: ['List comprehension inside gather preserves order of results', 'asyncio.run only at the bottom in scripts'],
+      },
+      {
+        type: 'exercise',
+        title: 'gather with return_exceptions',
+        description:
+          'Given `async def may_fail(x: int) -> int`: await `asyncio.sleep(0.01)`; if `x == 2` raise `ValueError("bad")`; else return `x * 10`. Write `async def safe_gather(xs: list[int]) -> list[int | str]` using `asyncio.gather(..., return_exceptions=True)` mapping exceptions to the string `"error"`.',
+        language: 'python',
+        starterCode: `import asyncio
+
+
+async def may_fail(x: int) -> int:
+    ...
+
+
+async def safe_gather(xs: list[int]) -> list[int | str]:
+    ...
+
+
+print(asyncio.run(safe_gather([1, 2, 3])))`,
+        solution: `import asyncio
+
+
+async def may_fail(x: int) -> int:
+    await asyncio.sleep(0.01)
+    if x == 2:
+        raise ValueError("bad")
+    return x * 10
+
+
+async def safe_gather(xs: list[int]) -> list[int | str]:
+    results = await asyncio.gather(*[may_fail(x) for x in xs], return_exceptions=True)
+    out: list[int | str] = []
+    for r in results:
+        if isinstance(r, Exception):
+            out.append("error")
+        else:
+            out.append(r)
+    return out
+
+
+print(asyncio.run(safe_gather([1, 2, 3])))`,
+        hints: ['After gather, loop with isinstance(r, Exception)', 'Do not re-raise inside safe_gather'],
+      },
+      {
+        type: 'exercise',
+        title: 'Semaphore-limited concurrency',
+        description:
+          'Complete `async def map_limited(items: list[str], limit: int, worker)` where `worker` is an async function taking one str. Use `asyncio.Semaphore(limit)` and an inner async helper so at most `limit` workers run at once. Return `await asyncio.gather(...)` over all items.',
+        language: 'python',
+        starterCode: `import asyncio
+
+
+async def map_limited(
+    items: list[str],
+    limit: int,
+    worker,
+) -> list:
+    sem = asyncio.Semaphore(limit)
+
+    async def run_one(item: str):
+        async with sem:
+            return await worker(item)
+
+    ...
+
+
+async def slow_echo(s: str) -> str:
+    await asyncio.sleep(0.02)
+    return s.upper()
+
+
+print(asyncio.run(map_limited(["a", "b", "c", "d"], 2, slow_echo)))`,
+        solution: `import asyncio
+
+
+async def map_limited(
+    items: list[str],
+    limit: int,
+    worker,
+) -> list:
+    sem = asyncio.Semaphore(limit)
+
+    async def run_one(item: str):
+        async with sem:
+            return await worker(item)
+
+    return await asyncio.gather(*[run_one(i) for i in items])
+
+
+async def slow_echo(s: str) -> str:
+    await asyncio.sleep(0.02)
+    return s.upper()
+
+
+print(asyncio.run(map_limited(["a", "b", "c", "d"], 2, slow_echo)))`,
+        hints: ['Define run_one inside map_limited so it closes over sem', 'gather a list of run_one(item) calls'],
       },
     ],
   },

@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronRight, Clock, BookOpen, ArrowLeft, ArrowRight } from 'lucide-react'
+import { ChevronRight, Clock, BookOpen } from 'lucide-react'
 import { getModule } from '@/data/modules'
 import { getLessonById, getAdjacentLessons } from '@/data/lessons'
 import { LessonSidebar } from '@/components/lesson/lesson-sidebar'
 import { ContentRenderer } from '@/components/lesson/content-renderer'
+import { LessonPageFooter } from '@/components/lesson/lesson-page-footer'
 
 const DIFFICULTY_STYLES = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -26,12 +27,12 @@ export default async function LessonPage({
   const { prev, next } = getAdjacentLessons(lesson.id)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-full min-h-0 overflow-hidden bg-background">
       {/* Sidebar */}
       <LessonSidebar module={courseModule} activeLessonId={lesson.id} />
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
         {/* Top nav */}
         <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
           <div className="max-w-4xl mx-auto px-8 py-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -96,36 +97,12 @@ export default async function LessonPage({
           {/* Lesson content */}
           <ContentRenderer blocks={lesson.content} />
 
-          {/* Navigation */}
-          <nav className="mt-16 pt-8 border-t border-border flex items-center justify-between gap-4">
-            {prev ? (
-              <Link
-                href={`/learn/${courseModule.id}/${prev.id}`}
-                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group max-w-xs"
-              >
-                <ArrowLeft className="w-4 h-4 shrink-0 group-hover:-translate-x-0.5 transition-transform" />
-                <span className="truncate">{prev.title}</span>
-              </Link>
-            ) : <div />}
-
-            {next ? (
-              <Link
-                href={`/learn/${courseModule.id}/${next.id}`}
-                className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors group max-w-xs"
-              >
-                <span className="truncate text-right">{next.title}</span>
-                <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            ) : (
-              <Link
-                href={`/learn/${courseModule.id}`}
-                className="flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-500 transition-colors"
-              >
-                <span>Module Complete!</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            )}
-          </nav>
+          <LessonPageFooter
+            moduleId={courseModule.id}
+            lessonId={lesson.id}
+            prev={prev}
+            next={next}
+          />
         </article>
       </div>
     </div>

@@ -1,8 +1,10 @@
 import type { Lesson } from '@/types/lesson'
 import { aiEngineeringLessons } from './ai-engineering'
+import { backendLessons } from './backend'
+import { frontendLessons } from './frontend'
 import { pythonBackendLessons } from './python-backend'
 
-export const ALL_LESSONS: Lesson[] = [...aiEngineeringLessons, ...pythonBackendLessons]
+export const ALL_LESSONS: Lesson[] = [...frontendLessons, ...backendLessons, ...aiEngineeringLessons, ...pythonBackendLessons]
 
 export function getLessonById(id: string): Lesson | undefined {
   return ALL_LESSONS.find(l => l.id === id)

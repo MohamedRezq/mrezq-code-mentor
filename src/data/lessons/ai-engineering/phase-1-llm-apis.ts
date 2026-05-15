@@ -163,6 +163,38 @@ params = {
         title: 'Temperature quick guide',
         content: 'temperature=0.0: SQL queries, data extraction, structured output, classifications. temperature=0.3–0.7: Q&A, summaries, code explanations. temperature=0.8–1.0: creative writing, persona roleplay, brainstorming. When in doubt, start at 0.0 and increase only if responses feel too rigid.',
       },
+      {
+        type: 'exercise',
+        title: 'Token Budget Planner',
+        description:
+          'Write a script that estimates total input token cost for 3 scenarios: 100, 1,000, and 10,000 requests/day. Each request has system prompt (180 tokens), user input (240 tokens), and retrieved context (900 tokens). Print daily and monthly cost estimates for `gpt-4o` and `gpt-4o-mini`.',
+        language: 'python',
+        starterCode: `# TODO:
+# 1) define token counts per request
+# 2) compute total tokens per day for each traffic scenario
+# 3) compute cost with two model price tables
+# 4) print a readable report`,
+        solution: `PRICE_PER_M_INPUT = {
+    "gpt-4o": 2.50,
+    "gpt-4o-mini": 0.15,
+}
+
+TOKENS_PER_REQUEST = 180 + 240 + 900
+SCENARIOS = [100, 1000, 10000]
+
+for model, price in PRICE_PER_M_INPUT.items():
+    print(f"\\nModel: \${model}")
+    for requests_per_day in SCENARIOS:
+        daily_tokens = TOKENS_PER_REQUEST * requests_per_day
+        daily_cost = (daily_tokens / 1_000_000) * price
+        monthly_cost = daily_cost * 30
+        print(f"\${requests_per_day:>6}/day -> $\${daily_cost:.3f}/day, $\${monthly_cost:.2f}/month")`,
+        hints: [
+          'Input cost = (tokens / 1_000_000) * price_per_million',
+          'Keep output tokens separate in real production reports',
+          'Use constants for clarity and maintainability',
+        ],
+      },
     ],
   },
 
@@ -412,6 +444,49 @@ def resilient_complete(prompt: str) -> str:
         title: 'OpenAI SDK already handles retries',
         content: 'The OpenAI Python SDK (v1.0+) has built-in retry logic with exponential backoff for rate limits and server errors. Pass `max_retries=3` to the OpenAI() constructor. The manual retry code above is for understanding — in practice, the SDK handles most cases automatically.',
       },
+      {
+        type: 'exercise',
+        title: 'Production Chat Wrapper',
+        description:
+          'Build a `chat_once()` function that accepts `model`, `system_prompt`, `user_prompt`, and returns both `content` and usage metadata. Add structured error handling for rate limit, auth failure, and timeout, and include a retry counter in the returned object.',
+        language: 'python',
+        starterCode: `# TODO:
+# def chat_once(model: str, system_prompt: str, user_prompt: str) -> dict:
+#   - call OpenAI chat completion
+#   - return {"content": ..., "usage": ..., "retries": ...}
+#   - catch common SDK errors`,
+        solution: `from openai import OpenAI, RateLimitError, APIConnectionError, APIStatusError
+
+client = OpenAI(max_retries=2)
+
+def chat_once(model: str, system_prompt: str, user_prompt: str) -> dict:
+    retries = 0
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            timeout=30,
+        )
+        return {
+            "content": response.choices[0].message.content,
+            "usage": response.usage.model_dump() if response.usage else {},
+            "retries": retries,
+        }
+    except RateLimitError as e:
+        return {"error": "rate_limited", "detail": str(e), "retries": retries + 1}
+    except APIConnectionError as e:
+        return {"error": "network_error", "detail": str(e), "retries": retries}
+    except APIStatusError as e:
+        return {"error": f"api_status_{e.status_code}", "detail": str(e), "retries": retries}`,
+        hints: [
+          'Return machine-friendly keys for observability',
+          'Include usage to power cost dashboards',
+          'Do not swallow errors silently',
+        ],
+      },
     ],
   },
 
@@ -577,6 +652,31 @@ async def async_claude(prompt: str) -> str:
         tone: 'tip',
         title: 'When to choose Claude vs OpenAI',
         content: 'Choose Claude when: (1) you have very long documents (Claude\'s 200K context window), (2) you need nuanced instruction following, (3) you want extended thinking for hard reasoning problems. Choose OpenAI when: (1) you need function calling with many tools (slightly more mature), (2) you need multimodal image analysis, (3) your team is already on the OpenAI ecosystem. In practice, benchmark both on your specific task.',
+      },
+      {
+        type: 'exercise',
+        title: 'Cross-Provider Benchmark Script',
+        description:
+          'Create a script that runs the same 5 prompts against one OpenAI model and one Claude model. Capture latency, token usage, and a simple quality rating (1-5 by manual review). Print a final recommendation based on your data.',
+        language: 'python',
+        starterCode: `# TODO:
+# 1) define benchmark prompts list
+# 2) call OpenAI and Claude for each prompt
+# 3) measure latency with time.perf_counter()
+# 4) collect usage + response text
+# 5) print comparison summary`,
+        solution: `# Expected output shape:
+# prompt_1 -> openai: 1.2s, claude: 1.5s
+# prompt_2 -> openai: 0.9s, claude: 1.1s
+# ...
+# Avg latency: openai=1.06s, claude=1.32s
+# Avg manual quality: openai=4.0, claude=4.4
+# Recommendation: Claude for long-doc analysis, OpenAI for tool-heavy flows`,
+        hints: [
+          'Keep prompt set representative of your real product',
+          'Use temperature=0 for fair deterministic comparison',
+          'Benchmark quality and cost, not just speed',
+        ],
       },
     ],
   },
@@ -767,6 +867,34 @@ CATEGORY: [category]"""`,
         title: 'Prompt versioning in production',
         content: 'Prompts are code. Version control them. When you change a prompt, run regression tests against a golden dataset of expected outputs. A prompt change that improves 80% of outputs while breaking 20% might still be a net negative. The Instructor and LangSmith tools (covered later) help with prompt evaluation.',
       },
+      {
+        type: 'exercise',
+        title: 'Prompt Refactor Challenge',
+        description:
+          'Take a vague prompt and refactor it into a production prompt with explicit role, task constraints, output format, and failure behavior. Then test it on 10 inputs and compare consistency.',
+        language: 'python',
+        starterCode: `bad_prompt = "Analyze this support ticket and help the team."
+
+# TODO:
+# 1) rewrite into a strict prompt
+# 2) enforce fixed output format
+# 3) test on 10 varied tickets
+# 4) compare parse success rate`,
+        solution: `good_prompt = """You are a support triage assistant.
+Classify ticket into one of: BILLING, TECHNICAL, ACCOUNT, OTHER.
+Return exactly:
+CATEGORY: <label>
+PRIORITY: <low|medium|high>
+REASON: <one sentence>
+If uncertain, set CATEGORY=OTHER and explain uncertainty briefly."""
+
+# Run across dataset and compute valid-format rate.`,
+        hints: [
+          'Remove vague words like "maybe" and "helpful"',
+          'Define allowed labels explicitly',
+          'Add deterministic formatting instructions',
+        ],
+      },
     ],
   },
 
@@ -956,6 +1084,31 @@ print(result.reasoning)        # "The response is too brief..."`,
         title: 'When NOT to use CoT',
         content: 'CoT uses more tokens = higher cost and latency. Avoid it for: simple classifications, data extraction with clear schemas, high-volume batch jobs, and latency-sensitive applications. Use it for: complex reasoning, math, code analysis, multi-criteria evaluation, and any task where you have seen the model make reasoning errors without it.',
       },
+      {
+        type: 'exercise',
+        title: 'CoT A/B Evaluation',
+        description:
+          'Build an A/B harness comparing direct prompting vs CoT prompting on 20 reasoning tasks (math + logic + analysis). Record accuracy, latency, and token usage. Recommend when CoT should be enabled in production.',
+        language: 'python',
+        starterCode: `# TODO:
+# 1) create task set (20 questions + expected answers)
+# 2) run direct prompt and CoT prompt
+# 3) score correctness
+# 4) log latency + usage
+# 5) produce recommendation`,
+        solution: `# Example decision:
+# direct: accuracy=65%, avg_latency=1.1s, avg_tokens=180
+# cot:    accuracy=84%, avg_latency=1.9s, avg_tokens=420
+#
+# Recommendation:
+# - Use CoT only for complex-reasoning routes
+# - Keep direct prompting for simple high-volume tasks`,
+        hints: [
+          'Use temperature=0 for fair comparisons',
+          'Keep grading rubric deterministic',
+          'Report both quality and cost impact',
+        ],
+      },
     ],
   },
 
@@ -1119,6 +1272,32 @@ print(result.total_analyzed)  # 3`,
         tone: 'production',
         title: 'Use Instructor for any structured LLM output in production',
         content: 'Instructor is the industry standard for structured LLM output. It works with any provider, adds retry logic, gives you clear validation errors, and integrates with your existing Pydantic models. The only case to use raw json_object mode is when you cannot add a dependency.',
+      },
+      {
+        type: 'exercise',
+        title: 'Schema-First Extraction API',
+        description:
+          'Implement a `POST /extract-job` endpoint that receives unstructured job text and returns a validated Pydantic object. If validation fails, retry once with a stricter repair prompt, then return a structured error.',
+        language: 'python',
+        starterCode: `# TODO:
+# 1) define JobPosting model
+# 2) call LLM with structured output / Instructor
+# 3) validate result
+# 4) retry once if invalid
+# 5) return JSON error envelope on failure`,
+        solution: `# Expected response shape:
+# success: {"ok": true, "data": {...validated fields...}}
+# failure: {"ok": false, "error": "validation_failed", "details": [...]}
+#
+# Include:
+# - request_id
+# - model used
+# - retry_count`,
+        hints: [
+          'Keep schema strict and explicit',
+          'Validation errors should be logged and observable',
+          'Do not return raw malformed model output to clients',
+        ],
       },
     ],
   },
@@ -1334,6 +1513,28 @@ async function streamChat(message: string, history: Message[]) {
   return fullContent
 }`,
         explanation: 'This is the frontend counterpart to the FastAPI streaming endpoint. The Next.js API routes in this platform use the same pattern under the hood.',
+      },
+      {
+        type: 'exercise',
+        title: 'Build a Streaming Chat UI',
+        description:
+          'Create a minimal chat UI that streams tokens from `/chat/stream`, shows partial output in real time, supports canceling an in-flight stream, and persists completed assistant messages in history.',
+        language: 'typescript',
+        starterCode: `// TODO:
+// 1) create streamChat(message, history)
+// 2) append token deltas to UI state
+// 3) add AbortController to cancel stream
+// 4) on completion, persist final assistant message`,
+        solution: `// Key implementation points:
+// - Use fetch with signal from AbortController
+// - Keep ` + "`streamingContent`" + ` separate from committed messages
+// - On done: push assistant message into history array
+// - On cancel: stop reader and keep partial text optional`,
+        hints: [
+          'Separate transient stream state from committed chat history',
+          'Handle partial chunks safely (line buffering)',
+          'Provide clear UI state: streaming, done, canceled, error',
+        ],
       },
     ],
   },

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ChevronDown, ChevronRight, Lightbulb, AlertTriangle, Info, Zap, Star } from 'lucide-react'
+import { ChevronDown, ChevronRight, Lightbulb, AlertTriangle, Info, Zap, Star, BookOpenCheck } from 'lucide-react'
 import { CodeBlock } from './code-block'
 import type { ContentBlock, CalloutTone } from '@/types/lesson'
 
@@ -36,6 +36,12 @@ const CALLOUT_CONFIG: Record<CalloutTone, {
     icon: Star,
     className: 'bg-orange-50 border-orange-200 text-orange-900 dark:bg-orange-950/30 dark:border-orange-800 dark:text-orange-100',
     label: 'Important',
+  },
+  clarification: {
+    icon: BookOpenCheck,
+    className:
+      'bg-teal-50 border-teal-200 text-teal-950 dark:bg-teal-950/35 dark:border-teal-800 dark:text-teal-50',
+    label: 'Clarification',
   },
 }
 

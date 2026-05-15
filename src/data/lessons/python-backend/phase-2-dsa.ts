@@ -124,6 +124,13 @@ print(9999 in my_dict)   # instant`,
         content: 'Big O is theory — always benchmark critical paths with `timeit` or `cProfile`. Python has high constant factors so O(n) Python code can be slower than O(n²) C code for small n. Profile before optimising.',
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'What Big O ignores',
+        content:
+          'Big O drops constants and lower-order terms — so O(2n) is still written O(n). Two algorithms with the same Big O can differ a lot in real speed (cache, allocations). Use Big O to compare growth as n → ∞; use profiling for the hot path today.',
+      },
+      {
         type: 'exercise',
         title: 'Two Sum',
         description: 'Given a list of integers and a target sum, find all unique pairs that add to the target. First write the O(n²) brute force, then optimise to O(n) using a set. Both should return the same result.',
@@ -161,6 +168,35 @@ def two_sum_fast(nums: list[int], target: int) -> list[tuple[int, int]]:
     return list(results)`,
         hints: ['For O(n): for each number, check if (target - number) is already in a set', 'Use min/max to normalise the pair so (2,7) and (7,2) are the same', 'Track seen numbers as you go — add to set after checking'],
       },
+      {
+        type: 'exercise',
+        title: 'Binary search first position',
+        description:
+          'Given a sorted ascending list of distinct integers and a `target`, return the smallest index `i` such that `nums[i] >= target`. If all values are smaller than `target`, return `len(nums)`. Must be O(log n).',
+        language: 'python',
+        starterCode: `def lower_bound(nums: list[int], target: int) -> int:
+    ...
+
+
+print(lower_bound([1, 3, 5, 7], 5))   # 2
+print(lower_bound([1, 3, 5, 7], 4))   # 2
+print(lower_bound([1, 3, 5, 7], 9))   # 4`,
+        solution: `def lower_bound(nums: list[int], target: int) -> int:
+    lo, hi = 0, len(nums)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if nums[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo
+
+
+print(lower_bound([1, 3, 5, 7], 5))
+print(lower_bound([1, 3, 5, 7], 4))
+print(lower_bound([1, 3, 5, 7], 9))`,
+        hints: ['Use half-open interval [lo, hi)', 'If nums[mid] < target, answer is strictly after mid', 'Else shrink hi to mid'],
+      },
     ],
   },
 
@@ -194,6 +230,13 @@ A true **array** stores elements in contiguous memory — every element is the s
 - Insert at beginning: O(n) — shifts all pointers ✗
 
 For true arrays (numeric, fixed type), use \`array\` module or \`numpy.ndarray\`.`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Stack on `list` vs queue on `deque`',
+        content:
+          '`list.append` / `pop()` from the end are O(1) — a fine stack. **Never** `pop(0)` on a long list for a queue — that is O(n). For FIFO use `collections.deque` with `append` + `popleft` (both O(1)).',
       },
       {
         type: 'code',
@@ -408,6 +451,33 @@ while not task_queue.is_empty():
         return self._history[self._index]`,
         hints: ['Use a list and an index pointer', 'visit() should truncate forward history (slice to current + 1)', 'back/forward just clamp the index with max/min'],
       },
+      {
+        type: 'exercise',
+        title: 'Valid stack sequences',
+        description:
+          'Given `pushed` and `popped` (two permutations of the same distinct integers), return True iff `popped` could be the pop order of an empty stack after pushing elements from `pushed` left to right (you may push until the next pop matches). O(n) time, O(n) extra space.',
+        language: 'python',
+        starterCode: `def validate_stack_sequences(pushed: list[int], popped: list[int]) -> bool:
+    ...
+
+
+print(validate_stack_sequences([1, 2, 3, 4, 5], [4, 5, 3, 2, 1]))  # True
+print(validate_stack_sequences([1, 2, 3, 4, 5], [4, 3, 5, 1, 2]))  # False`,
+        solution: `def validate_stack_sequences(pushed: list[int], popped: list[int]) -> bool:
+    stack: list[int] = []
+    j = 0
+    for x in pushed:
+        stack.append(x)
+        while stack and j < len(popped) and stack[-1] == popped[j]:
+            stack.pop()
+            j += 1
+    return j == len(popped)
+
+
+print(validate_stack_sequences([1, 2, 3, 4, 5], [4, 5, 3, 2, 1]))
+print(validate_stack_sequences([1, 2, 3, 4, 5], [4, 3, 5, 1, 2]))`,
+        hints: ['Simulate: push from pushed, pop while top matches popped[j]', 'At end j must equal len(popped)'],
+      },
     ],
   },
 
@@ -444,6 +514,13 @@ table[42] = ("name", "Alice")
 **Collisions** occur when two keys map to the same index. Python dicts use **open addressing with probing** — on collision, it finds the next available slot. The table resizes when load factor exceeds ~2/3.
 
 **Requirements for hashable keys:** must implement \`__hash__\` AND \`__eq__\`, AND the hash must not change while the object is in the dict. This is why mutable objects (lists, dicts, sets) cannot be dict keys.`,
+      },
+      {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'O(1) dict operations are average case',
+        content:
+          'Hash collisions and resizing can make a single insert or lookup slower in the worst case. In interviews and most production loads, treat dict/set as O(1) average — but avoid adversarial keys and know that iteration is always O(n) over the items.',
       },
       {
         type: 'code',
@@ -597,6 +674,32 @@ class LRUCache:
             self.cache.popitem(last=False)   # evict LRU (first/oldest)`,
         hints: ['OrderedDict maintains insertion order AND supports move_to_end()', 'move_to_end(key) makes that key the most recently used', 'popitem(last=False) removes the oldest item'],
       },
+      {
+        type: 'exercise',
+        title: 'Top K frequent words',
+        description:
+          'Given a list of words, return the `k` most frequent words sorted by frequency descending; when frequencies tie, pick the lexicographically smaller word first. Use a Counter. O(n log n) via sorting unique words is fine here.',
+        language: 'python',
+        starterCode: `from collections import Counter
+
+
+def top_k_frequent(words: list[str], k: int) -> list[str]:
+    ...
+
+
+print(top_k_frequent(["i", "love", "leetcode", "i", "love", "coding"], 2))`,
+        solution: `from collections import Counter
+
+
+def top_k_frequent(words: list[str], k: int) -> list[str]:
+    counts = Counter(words)
+    # Higher frequency first; ties broken by lexicographic order (smaller word first)
+    return sorted(counts.keys(), key=lambda w: (-counts[w], w))[:k]`,
+        hints: [
+          'Count with Counter',
+          'Sort unique words by (-frequency, word) then take first k',
+        ],
+      },
     ],
   },
 
@@ -695,6 +798,13 @@ print(bst.inorder())      # [1, 3, 4, 5, 6, 7, 8]
 print(bst.level_order())  # [[5], [3, 7], [1, 4, 6, 8]]`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'BST height vs balanced trees',
+        content:
+          'A BST stays O(log n) per op only if roughly balanced. Sorted inserts `[1,2,3,4,5]` degenerate to a linked list — O(n) depth. Libraries use self-balancing trees (not in stdlib); in Python interviews prefer knowing the risk and when to use `heapq` or sorted lists/`bisect` instead.',
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'heap_recursion.py',
@@ -780,6 +890,76 @@ def k_closest(points: list[tuple[int, int]], k: int) -> list[tuple[int, int]]:
             heapq.heappop(heap)   # remove the farthest
     return [point for _, point in heap]`,
         hints: ['Use negative distance to turn min-heap into max-heap', 'Maintain heap of size k — evict the largest (farthest) when it exceeds k', 'No need to take square root — comparing squared distances is equivalent'],
+      },
+      {
+        type: 'exercise',
+        title: 'Level-order traversal',
+        description:
+          'Implement `level_order(root) -> list[list[int]]` for a binary tree built from `TreeNode` objects (value, left, right). Return list of levels, left-to-right within each level. Use a `deque` queue; O(n) time.',
+        language: 'python',
+        starterCode: `from collections import deque
+from typing import Optional
+
+
+class TreeNode:
+    def __init__(self, value: int) -> None:
+        self.value = value
+        self.left: Optional[TreeNode] = None
+        self.right: Optional[TreeNode] = None
+
+
+def level_order(root: Optional[TreeNode]) -> list[list[int]]:
+    ...
+
+
+#     3
+#    / \\
+#   9  20
+#     /  \\
+#    15   7
+r = TreeNode(3)
+r.left = TreeNode(9)
+r.right = TreeNode(20)
+r.right.left = TreeNode(15)
+r.right.right = TreeNode(7)
+print(level_order(r))  # [[3], [9, 20], [15, 7]]`,
+        solution: `from collections import deque
+from typing import Optional
+
+
+class TreeNode:
+    def __init__(self, value: int) -> None:
+        self.value = value
+        self.left: Optional[TreeNode] = None
+        self.right: Optional[TreeNode] = None
+
+
+def level_order(root: Optional[TreeNode]) -> list[list[int]]:
+    if root is None:
+        return []
+    out: list[list[int]] = []
+    q: deque[TreeNode] = deque([root])
+    while q:
+        level_len = len(q)
+        level: list[int] = []
+        for _ in range(level_len):
+            node = q.popleft()
+            level.append(node.value)
+            if node.left:
+                q.append(node.left)
+            if node.right:
+                q.append(node.right)
+        out.append(level)
+    return out
+
+
+r = TreeNode(3)
+r.left = TreeNode(9)
+r.right = TreeNode(20)
+r.right.left = TreeNode(15)
+r.right.right = TreeNode(7)
+print(level_order(r))`,
+        hints: ['Process queue level by level using current len(q)', 'popleft then push children'],
       },
     ],
   },
@@ -920,6 +1100,13 @@ def remove_duplicates_sorted(nums: list[int]) -> int:
     return write`,
       },
       {
+        type: 'callout',
+        tone: 'clarification',
+        title: 'Sliding window vs two pointers',
+        content:
+          '**Sliding window** keeps a contiguous segment of an array/string and adjusts left/right edges when a condition (sum, distinct count) breaks. **Two pointers** often start at both ends of a **sorted** array and move inward — different invariant, same idea of not re-scanning from scratch.',
+      },
+      {
         type: 'exercise',
         title: 'Minimum Window Substring',
         description: 'Given strings `s` and `t`, find the minimum window in `s` that contains all characters of `t` (including duplicates). Return "" if no such window exists. Must run in O(n).',
@@ -959,6 +1146,35 @@ def min_window(s: str, t: str) -> str:
 
     return best`,
         hints: ['Use Counter for "need" and track how many chars are still missing', 'When missing == 0, shrink the window from the left', 'Only update best answer when you have a valid window'],
+      },
+      {
+        type: 'exercise',
+        title: 'Merge two sorted arrays',
+        description:
+          'Given two sorted lists `a` and `b`, return a new sorted list containing all elements. Use two pointers — O(len(a)+len(b)) time and O(1) extra space besides the output list.',
+        language: 'python',
+        starterCode: `def merge_sorted(a: list[int], b: list[int]) -> list[int]:
+    ...
+
+
+print(merge_sorted([1, 3, 5], [2, 4, 6]))`,
+        solution: `def merge_sorted(a: list[int], b: list[int]) -> list[int]:
+    i = j = 0
+    out: list[int] = []
+    while i < len(a) and j < len(b):
+        if a[i] <= b[j]:
+            out.append(a[i])
+            i += 1
+        else:
+            out.append(b[j])
+            j += 1
+    out.extend(a[i:])
+    out.extend(b[j:])
+    return out
+
+
+print(merge_sorted([1, 3, 5], [2, 4, 6]))`,
+        hints: ['Compare a[i] and b[j], advance the smaller side', 'After one list empties, extend with the remainder'],
       },
     ],
   },

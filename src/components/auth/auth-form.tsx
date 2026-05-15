@@ -65,7 +65,14 @@ export function AuthForm({ mode }: AuthFormProps) {
         router.refresh();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const msg = err instanceof Error ? err.message : "An error occurred";
+      if (msg.toLowerCase().includes("email not confirmed")) {
+        setError(
+          "Please confirm your email first (check inbox/spam), or disable email confirmation in Supabase Auth settings for local dev."
+        );
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
