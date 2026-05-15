@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/auth-provider'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import {
   addLocalCompletion,
@@ -26,33 +26,20 @@ export interface LessonProgressState {
 }
 
 export function useLessonProgress(): LessonProgressState {
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const refresh = useCallback(async () => {
     setLoading(true)
     const localIds = readLocalCompletions()
 
     try {
-      if (!isSupabaseConfigured()) {
-        setIsAuthenticated(false)
+      if (!isSupabaseConfigured() || !isAuthenticated) {
         setCompletedIds(new Set(localIds))
         return
       }
 
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        setIsAuthenticated(false)
-        setCompletedIds(new Set(localIds))
-        return
-      }
-
-      setIsAuthenticated(true)
       const res = await fetch('/api/progress', { credentials: 'include' })
 
       if (!res.ok) {
@@ -69,15 +56,15 @@ export function useLessonProgress(): LessonProgressState {
       writeLocalCompletions([...merged])
     } catch {
       setCompletedIds(new Set(localIds))
-      setIsAuthenticated(false)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAuthenticated])
 
   useEffect(() => {
+    if (authLoading) return
     void refresh()
-  }, [refresh])
+  }, [authLoading, isAuthenticated, refresh])
 
   const markLessonComplete = useCallback(
     async (lessonId: string, timeSpentSeconds = 0): Promise<MarkCompleteResult> => {
@@ -107,7 +94,7 @@ export function useLessonProgress(): LessonProgressState {
         body: JSON.stringify({ lessonId, timeSpentSeconds }),
       })
 
-      const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string }
+      const body = (await res.json().catch(() => ({}))) as { error?: string }
 
       if (!res.ok) {
         const msg =
@@ -140,7 +127,7 @@ export function useLessonProgress(): LessonProgressState {
   return useMemo(
     () => ({
       completedIds,
-      loading,
+      loading: loading || authLoading,
       isAuthenticated,
       isLessonComplete,
       markLessonComplete,
@@ -150,6 +137,7 @@ export function useLessonProgress(): LessonProgressState {
     [
       completedIds,
       loading,
+      authLoading,
       isAuthenticated,
       isLessonComplete,
       markLessonComplete,

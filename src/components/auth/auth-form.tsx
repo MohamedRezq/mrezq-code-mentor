@@ -61,6 +61,9 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         if (signInError) throw signInError;
 
+        // Ensure session is written to cookies before navigation
+        await supabase.auth.getSession();
+
         router.push(redirect);
         router.refresh();
       }

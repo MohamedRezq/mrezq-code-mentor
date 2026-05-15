@@ -1,0 +1,73 @@
+import type { Lesson } from '@/types/lesson'
+
+export const securityAppLessons: Lesson[] = [
+  {
+    id: 'sec-owasp',
+    moduleId: 'security',
+    phaseId: 'sec-app',
+    phaseNumber: 1,
+    order: 1,
+    title: 'OWASP Top 10 Overview',
+    description: 'Broken access control, injection, cryptographic failures — map risks to your stack.',
+    duration: '1.5 h',
+    difficulty: 'intermediate',
+    objectives: ['Name OWASP Top 10 categories', 'Map each to detection in code review', 'Prioritize by business impact', 'Track remediation in backlog'],
+    content: [
+      { type: 'callout', tone: 'tip', title: 'Start with authz', content: 'Broken access control is #1 — test horizontal privilege (user A reads user B data).' },
+      { type: 'exercise', title: 'Top 3 for APIs', description: 'Pick three OWASP items most relevant to a JSON REST API.', language: 'javascript', starterCode: `// 1.\n// 2.\n// 3.\n`, solution: `// 1. Broken access control\n// 2. Injection (SQL/NoSQL)\n// 3. Security misconfiguration` },
+    ],
+  },
+  {
+    id: 'sec-xss',
+    moduleId: 'security',
+    phaseId: 'sec-app',
+    phaseNumber: 1,
+    order: 2,
+    title: 'XSS Prevention',
+    description: 'Reflected, stored, DOM XSS — escaping, CSP, and React defaults.',
+    duration: '1 h',
+    difficulty: 'intermediate',
+    objectives: ['Encode output for HTML context', 'Set Content-Security-Policy', 'Avoid dangerouslySetInnerHTML', 'Sanitize rich text if required'],
+    content: [
+      { type: 'exercise', title: 'CSP header', description: 'One directive that blocks inline script execution.', language: 'javascript', starterCode: `// directive:\n`, solution: `// script-src 'self' — no unsafe-inline` },
+    ],
+  },
+  {
+    id: 'sec-csrf',
+    moduleId: 'security',
+    phaseId: 'sec-app',
+    phaseNumber: 1,
+    order: 3,
+    title: 'CSRF & Session Security',
+    description: 'SameSite cookies, CSRF tokens, double-submit, and OAuth state parameter.',
+    duration: '1 h',
+    difficulty: 'intermediate',
+    objectives: ['Use SameSite=Lax or Strict', 'Require CSRF token on cookie auth', 'Validate OAuth state', 'Prefer HttpOnly Secure cookies'],
+    content: [
+      { type: 'exercise', title: 'SameSite', description: 'Why SameSite=Lax blocks cross-site POST from evil.com?', language: 'javascript', starterCode: `// reason:\n`, solution: `// browser withholds cookie on cross-site POST — attacker cannot forge authenticated actions` },
+    ],
+  },
+  {
+    id: 'sec-injection',
+    moduleId: 'security',
+    phaseId: 'sec-app',
+    phaseNumber: 1,
+    order: 4,
+    title: 'SQL & Command Injection',
+    description: 'Parameterized queries, ORM safety, shell escaping, and input validation.',
+    duration: '1.5 h',
+    difficulty: 'intermediate',
+    objectives: ['Never concatenate SQL with user input', 'Use prepared statements', 'Avoid shell exec with user strings', 'Validate allowlists'],
+    content: [
+      { type: 'code', language: 'javascript', filename: 'safe-query.js', code: `// Safe — parameterized\nawait db.query('SELECT * FROM users WHERE id = $1', [userId])\n\n// Unsafe\nawait db.query(\`SELECT * FROM users WHERE id = '\${userId}'\`)` },
+      {
+        type: 'exercise',
+        title: 'Fix injection',
+        description: 'Replace unsafe template SQL with parameterized pattern in comments.',
+        language: 'javascript',
+        starterCode: "// unsafe: WHERE email = '${email}'\n// safe:\n",
+        solution: '// WHERE email = $1 with [email] bound parameter',
+      },
+    ],
+  },
+]

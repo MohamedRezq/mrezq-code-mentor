@@ -5,11 +5,13 @@ import { BACKEND_REVIEWER } from './reviewer-enhancements'
 import { backendCoreLessons } from './phase-1-core'
 import { backendAuthLessons } from './phase-2-auth'
 import { backendScaleLessons } from './phase-3-scale'
+import { backendArchLessons } from './phase-4-architecture'
 
 const rawBackendLessons: Lesson[] = [
   ...backendCoreLessons,
   ...backendAuthLessons,
   ...backendScaleLessons,
+  ...backendArchLessons,
 ]
 
 function applyReviewerPass(lesson: Lesson): Lesson {

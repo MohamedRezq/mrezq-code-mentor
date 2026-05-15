@@ -389,6 +389,21 @@ def version():
   },
   'pb-db-redis': {
     intro: [roadmapIntro('Phase 6', 'Redis cache, TTL, pub/sub')],
+    outro: [
+      clarify(
+        'Cache invalidation',
+        'On write, delete or update cache keys for that entity (`user:123`, `posts:list`). TTL alone causes stale reads — pair TTL with explicit invalidation on mutations.'
+      ),
+      practice(
+        'Cache key design',
+        'Write a Redis key for caching a user profile by id `42` and one for a paginated post list page 2.',
+        `# profile key:
+# posts page key:
+`,
+        `# profile: user:42:profile
+# posts: posts:list:page:2`,
+      ),
+    ],
   },
   'pb-db-postgres-advanced': {
     intro: [roadmapIntro('Phase 6', 'indexes, EXPLAIN, connection pooling')],
@@ -479,6 +494,22 @@ def test_double():
   },
   'pb-prod-observability': {
     intro: [roadmapIntro('Phase 8', 'structured logs, metrics, OpenTelemetry')],
+    outro: [
+      clarify(
+        'Logs vs metrics vs traces',
+        '**Logs** — discrete events (errors, audit). **Metrics** — aggregates (p95 latency, error rate). **Traces** — one request across services. Use all three; logs alone do not show trends.'
+      ),
+      practice(
+        'Structured log fields',
+        'List four fields you always include in a production JSON log line.',
+        `# 1.
+# 2.
+# 3.
+# 4.
+`,
+        `# timestamp, level, message, request_id (plus service name, user_id when available)`,
+      ),
+    ],
   },
   'pb-prod-deployment': {
     intro: [roadmapIntro('Phase 8', '12-factor, env config, health checks')],

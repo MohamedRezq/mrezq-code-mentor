@@ -2,45 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { ArrowRight, LogIn, UserPlus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { LogIn, UserPlus } from 'lucide-react'
+import { useAuth } from '@/components/providers/auth-provider'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { UserNav } from '@/components/layout/user-nav'
 import { Button } from '@/components/ui/button'
 
 export function LearnHeader() {
   const pathname = usePathname()
-  const [email, setEmail] = useState<string | null>(null)
-  const [checking, setChecking] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      if (!isSupabaseConfigured()) {
-        if (!cancelled) {
-          setEmail(null)
-          setChecking(false)
-        }
-        return
-      }
-
-      try {
-        const supabase = createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!cancelled) setEmail(user?.email ?? null)
-      } catch {
-        if (!cancelled) setEmail(null)
-      } finally {
-        if (!cancelled) setChecking(false)
-      }
-    }
-
-    void load()
-  }, [pathname])
+  const { user, loading } = useAuth()
 
   const loginHref = `/login?redirect=${encodeURIComponent(pathname || '/learn')}`
 
@@ -57,12 +27,14 @@ export function LearnHeader() {
         <nav className="flex items-center gap-2 sm:gap-3">
           {!isSupabaseConfigured() ? (
             <span className="text-xs text-destructive font-medium">Auth not configured</span>
-          ) : checking ? (
-            <span className="text-xs text-muted-foreground">…</span>
-          ) : email ? (
+          ) : loading ? (
+            <span className="text-xs text-muted-foreground" aria-live="polite">
+              Loading…
+            </span>
+          ) : user ? (
             <>
               <span className="text-xs text-muted-foreground hidden md:inline truncate max-w-[180px]">
-                {email}
+                {user.email}
               </span>
               <UserNav />
             </>
@@ -78,7 +50,6 @@ export function LearnHeader() {
                 <Link href={`/signup?redirect=${encodeURIComponent(pathname || '/learn')}`}>
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Sign up</span>
-                  <ArrowRight className="w-3.5 h-3.5 sm:hidden" />
                 </Link>
               </Button>
             </>

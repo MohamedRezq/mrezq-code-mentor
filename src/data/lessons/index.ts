@@ -1,10 +1,27 @@
 import type { Lesson } from '@/types/lesson'
 import { aiEngineeringLessons } from './ai-engineering'
 import { backendLessons } from './backend'
+import { csFundamentalsLessons } from './cs-fundamentals'
+import { databaseLessons } from './databases'
+import { devopsLessons } from './devops'
 import { frontendLessons } from './frontend'
+import { leadershipLessons } from './leadership'
+import { securityLessons } from './security'
+import { systemDesignLessons } from './system-design'
 import { pythonBackendLessons } from './python-backend'
 
-export const ALL_LESSONS: Lesson[] = [...frontendLessons, ...backendLessons, ...aiEngineeringLessons, ...pythonBackendLessons]
+export const ALL_LESSONS: Lesson[] = [
+  ...csFundamentalsLessons,
+  ...frontendLessons,
+  ...backendLessons,
+  ...databaseLessons,
+  ...systemDesignLessons,
+  ...devopsLessons,
+  ...securityLessons,
+  ...leadershipLessons,
+  ...aiEngineeringLessons,
+  ...pythonBackendLessons,
+]
 
 export function getLessonById(id: string): Lesson | undefined {
   return ALL_LESSONS.find(l => l.id === id)

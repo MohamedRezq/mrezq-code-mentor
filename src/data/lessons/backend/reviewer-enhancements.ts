@@ -47,4 +47,17 @@ export const BACKEND_REVIEWER: Record<string, LessonEnhancement> = {
   'be-scaling-patterns': {
     intro: [roadmapIntro('backend', 'Phase 3', 'horizontal scale, health checks')],
   },
+  'be-monolith-vs-microservices': {
+    intro: [roadmapIntro('backend', 'Architecture', 'monolith, bounded contexts, strangler')],
+  },
+  'be-grpc-basics': {
+    intro: [roadmapIntro('backend', 'Architecture', 'gRPC, protobuf, internal RPC')],
+  },
+  'be-api-gateway': {
+    intro: [roadmapIntro('backend', 'Architecture', 'API gateway, BFF, edge auth')],
+  },
+  'be-event-driven': {
+    intro: [roadmapIntro('backend', 'Architecture', 'events, Kafka, idempotent consumers')],
+    outro: [clarify('Outbox pattern', 'Write event to DB outbox in same transaction as domain change — worker publishes to broker. Avoids “DB committed, message lost”.')],
+  },
 }
