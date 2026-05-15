@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { getLessonsByPhase } from '@/data/lessons'
+import { getPhaseTotalDuration } from '@/lib/curriculum/module-duration'
 import { useProgress } from '@/components/progress/progress-provider'
 import { ModuleProgressSummary } from '@/components/progress/module-progress-summary'
 import type { Module, PhaseInfo } from '@/types/lesson'
@@ -37,7 +38,7 @@ export function ModuleLessonList({ courseModule }: ModuleLessonListProps) {
                   Phase {phase.number}: {phase.title}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {phase.description} · {phase.duration}
+                  {phase.description} · {getPhaseTotalDuration(phase.id)}
                 </p>
               </div>
               <div className="space-y-2">

@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { Module, PhaseInfo } from '@/types/lesson'
 import { getLessonsByPhase } from '@/data/lessons'
+import { getModuleTotalDuration } from '@/lib/curriculum/module-duration'
 import { useProgress } from '@/components/progress/progress-provider'
 
 interface LessonSidebarProps {
@@ -95,7 +96,7 @@ export function LessonSidebar({ module, activeLessonId }: LessonSidebarProps) {
         </Link>
         <h2 className="font-bold text-foreground mt-1 leading-snug">{module.title}</h2>
         <p className="text-xs text-muted-foreground mt-1">
-          {totalLessons} lessons · {module.duration}
+          {totalLessons} lessons · {getModuleTotalDuration(module.id)}
         </p>
         {isAuthenticated && allLessonIds.length > 0 && (
           <p className="text-xs font-medium text-primary mt-2 tabular-nums">

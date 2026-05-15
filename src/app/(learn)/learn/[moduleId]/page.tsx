@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, BookOpen, Clock, ChevronRight } from 'lucide-react'
 import { getModule } from '@/data/modules'
 import { getLessonsByModule } from '@/data/lessons'
+import { getModuleTotalDuration } from '@/lib/curriculum/module-duration'
 import { ModuleLearningMap } from '@/components/learn/module-learning-map'
 import { ModuleLessonList } from '@/components/learn/module-page-client'
 import type { Track } from '@/types/lesson'
@@ -56,7 +57,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
             </span>
             <span className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              {courseModule.duration}
+              {getModuleTotalDuration(courseModule.id)} total
             </span>
           </div>
 

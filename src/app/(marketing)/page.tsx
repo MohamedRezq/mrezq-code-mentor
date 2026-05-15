@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, BookOpen, Clock, Layers, Trophy } from 'lucide-react'
 import { MODULES } from '@/data/modules'
+import { getModuleTotalDuration } from '@/lib/curriculum/module-duration'
 import type { Track } from '@/types/lesson'
 
 const TRACK_STYLES: Record<Track, { badge: string; dot: string }> = {
@@ -136,7 +137,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span>{module.totalLessons} lessons</span>
                     <span>·</span>
-                    <span>{module.duration}</span>
+                    <span>{getModuleTotalDuration(module.id)}</span>
                   </div>
                   {isAvailable ? (
                     <Link
