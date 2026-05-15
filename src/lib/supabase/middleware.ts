@@ -61,7 +61,12 @@ export async function updateSession(request: NextRequest) {
 
   if (isAuthPath && user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/learn";
+    const redirectTo = url.searchParams.get("redirect");
+    url.pathname =
+      redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+        ? redirectTo
+        : "/learn";
+    url.searchParams.delete("redirect");
     return NextResponse.redirect(url);
   }
 

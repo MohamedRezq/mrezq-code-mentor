@@ -64,8 +64,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         // Ensure session is written to cookies before navigation
         await supabase.auth.getSession();
 
-        router.push(redirect);
-        router.refresh();
+        // Full navigation so middleware + server components pick up session cookies
+        window.location.assign(redirect);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "An error occurred";
