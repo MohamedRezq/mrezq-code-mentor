@@ -22,26 +22,193 @@ export const pythonAppliedLessons: Lesson[] = [
     content: [
       {
         type: 'text',
-        markdown: `## Packages vs modules
+        markdown: `## Module vs package — how Python organizes code
 
-- **Module**: one file \`foo.py\` → \`import foo\`
-- **Package**: directory with \`__init__.py\` (namespace packages can omit it but explicit is clearer for app code)
-- Put shared code in packages; keep script entrypoints thin.`,
+| Term | What it is | How you import |
+|------|------------|----------------|
+| **Module** | One \`.py\` file | \`import utils\` → file \`utils.py\` |
+| **Package** | Folder of modules (usually has \`__init__.py\`) | \`import app.users\` → folder \`app/\` with \`users.py\` |
+
+Example layout:
+
+\`\`\`
+myproject/
+  app/
+    __init__.py      # makes app a package (can be empty)
+    users.py         # module app.users
+    api/
+      __init__.py
+      routes.py      # module app.api.routes
+  scripts/
+    seed_db.py       # thin entry script
+\`\`\`
+
+**Rule of thumb:** libraries and domain logic live in **packages**; \`scripts/\` only wires CLI and calls into packages.`,
+      },
+      {
+        type: 'text',
+        markdown: `## How \`import\` works (mental model)
+
+When you write \`from pathlib import Path\`:
+
+1. Python looks on **sys.path** (folders where it searches — project root, venv \`site-packages\`, etc.).
+2. It loads the module **once** and caches it in \`sys.modules\`.
+3. A second \`import pathlib\` in the same process is instant (already loaded).
+
+| Statement | Meaning |
+|-----------|---------|
+| \`import json\` | Load module; use as \`json.loads(...)\` |
+| \`from json import loads\` | Load module; bind name \`loads\` in your namespace |
+| \`from pathlib import Path as P\` | Import with alias |
+| \`from .users import find_user\` | **Relative** import — only inside a package (see below) |
+
+### Absolute vs relative imports
+
+| Style | Example | When |
+|-------|---------|------|
+| **Absolute** | \`from app.users import find_user\` | Default in application code — clearest |
+| **Relative** | \`from .users import find_user\` | Inside package \`app\` — means “sibling module \`users\`” |
+| **Parent relative** | \`from ..config import settings\` | One package up, then \`config\` |
+
+\`.\` = current package. \`..\` = parent package. **Only works inside a package**, not in a top-level script.
+
+\`\`\`python
+# In app/api/routes.py — relative import
+from ..users import find_user   # app.users.find_user
+
+# Same thing, absolute (often preferred)
+from app.users import find_user
+\`\`\`
+
+**Common errors**
+
+| Error | Cause |
+|-------|--------|
+| \`ImportError: attempted relative import with no known parent package\` | Ran file directly; not loaded as part of package |
+| \`ModuleNotFoundError: No module named 'app'\` | Project root not on \`PYTHONPATH\` / wrong working directory |
+| Circular import | Two modules import each other at top level — refactor shared code to a third module |`,
       },
       {
         type: 'code',
         language: 'python',
-        filename: 'imports.py',
-        code: `import json
+        filename: 'imports_basics.py',
+        code: `# Standard library — ships with Python (no pip install)
+import json
 from pathlib import Path
-from urllib.parse import urlencode, urlunparse
+from urllib.parse import urlencode, urlunparse, urlparse
 
-# package-relative (inside a package only)
-# from .users import find_user
+# Third-party (installed with pip) — example:
+# import httpx
+
+data = json.loads('{"ok": true}')
+print(data["ok"])   # True`,
+        explanation: '`json` is the module; `loads` parses a JSON string into Python dict/list.',
+      },
+      {
+        type: 'text',
+        markdown: `## \`if __name__ == "__main__":\` — two ways to run the same file
+
+Every loaded file gets a variable \`__name__\`.
+
+| How the file is started | Value of \`__name__\` |
+|-------------------------|------------------------|
+| \`python app/cli.py\` (you ran this file) | \`"__main__"\` |
+| \`import app.cli\` from another file | \`"app.cli"\` (the module path) |
+
+So the guard means: **only run this block when this file is the program entrypoint**, not when someone imports it.
+
+\`\`\`python
+def main():
+    print("CLI starting...")
 
 if __name__ == "__main__":
-    # Runs when executed as script — not when imported
-    print("CLI mode")`,
+    main()
+\`\`\`
+
+**Without the guard:** \`import app.cli\` would accidentally run \`main()\`, start argparse, hit the network — disasters in tests and libraries.
+
+**With the guard:** importers get functions only; humans run \`python -m app.cli\` or \`python app/cli.py\` to execute CLI.
+
+### \`python file.py\` vs \`python -m package.module\`
+
+| Command | Typical use |
+|---------|-------------|
+| \`python scripts/seed.py\` | One-off script |
+| \`python -m app.cli\` | Run module as \`__main__\` with correct package context (relative imports work) |`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'main_guard_demo.py',
+        code: `# Save as demo.py and try both:
+#   python demo.py          -> __name__ is "__main__"
+#   python -c "import demo" -> __name__ is "demo"
+
+print("Module loaded, __name__ =", __name__)
+
+def greet():
+    print("Hello from greet()")
+
+if __name__ == "__main__":
+    print("Running as script — call greet()")
+    greet()
+else:
+    print("Imported as library — greet() NOT called automatically")`,
+      },
+      {
+        type: 'text',
+        markdown: `## \`pathlib.Path\` — modern file paths (prefer over \`os.path\`)
+
+**Why pathlib?** Uses \`/\` operator instead of \`os.path.join("a", "b", "c")\`. Returns \`Path\` objects with methods: \`.exists()\`, \`.read_text()\`, \`.parent\`, \`.suffix\`.
+
+### \`__file__\` — “where is this .py file?”
+
+\`__file__\` is the path to the **current source file** (often relative). \`.resolve()\` makes it absolute.
+
+\`\`\`python
+from pathlib import Path
+
+# Directory containing THIS .py file
+here = Path(__file__).resolve().parent
+
+config = here / "config" / "app.toml"
+\`\`\`
+
+| Expression | Meaning |
+|------------|---------|
+| \`Path(__file__)\` | Path to this module’s file |
+| \`.resolve()\` | Absolute path, symlinks resolved |
+| \`.parent\` | Parent directory |
+| \`.parents\` | Iterator: parent, grandparent, … (walk up tree) |
+| \`path / "subdir" / "file.txt"\` | Join paths safely (OS-correct slashes) |
+| \`.exists()\` | \`True\` if file or folder exists |
+| \`.is_file()\` / \`.is_dir()\` | More specific checks |
+| \`.read_text(encoding="utf-8")\` | Read whole file as str |
+| \`.suffix\` | \`".toml"\`, \`".py"\` |
+| \`.stem\` | filename without suffix |
+
+### Scenarios
+
+\`\`\`python
+from pathlib import Path
+
+# 1) Config next to project root
+root = Path(__file__).resolve().parent.parent  # up one if file in app/
+env_file = root / ".env"
+
+# 2) Walk upward to find .git (repo root)
+start = Path.cwd()
+for directory in [start, *start.parents]:
+    if (directory / ".git").exists():
+        print("repo root:", directory)
+        break
+
+# 3) List Python files in a folder
+for py in Path("src").glob("**/*.py"):
+    print(py)
+\`\`\`
+
+**When you still see \`os\` / \`sys\`:** \`os.environ\` for environment variables, \`sys.argv\` for CLI args, \`sys.exit(1)\` for exit codes — pathlib handles paths; os/sys handle process/OS interface.`,
       },
       {
         type: 'code',
@@ -49,37 +216,96 @@ if __name__ == "__main__":
         filename: 'pathlib_demo.py',
         code: `from pathlib import Path
 
+# This file's directory
 root = Path(__file__).resolve().parent
 config = root / "config" / "app.toml"
-print(config.suffix)        # .toml
-print(config.exists())
 
-text = config.read_text(encoding="utf-8") if config.exists() else ""
+print("config path:", config)
+print("suffix:", config.suffix)       # .toml
+print("stem:", config.stem)           # app
+print("exists:", config.exists())
 
-# Safe join — no manual slashes
-p = Path("/var/log") / "app" / "out.log"`,
+if config.exists():
+    text = config.read_text(encoding="utf-8")
+else:
+    text = ""
+
+# Absolute path join — no "\\" or "//" mistakes on Windows
+log_path = Path("/var/log") / "app" / "out.log"
+print(log_path)`,
+      },
+      {
+        type: 'text',
+        markdown: `## \`urllib.parse\` — URLs and query strings
+
+A URL has parts:
+
+\`\`\`
+https://api.example.com:443/v1/users?active=true&page=2#section
+\\___/   \\_____________/ \\_/ \\_______/ \\_________________/ \\____/
+scheme      netloc       port   path         query            fragment
+\`\`\`
+
+| Function | Purpose |
+|----------|---------|
+| \`urlencode(dict)\` | Dict → query string \`active=true&page=2\` (handles encoding spaces as \`+\` or \`%20\`) |
+| \`urlparse(url)\` | Split string into components |
+| \`urlunparse(tuple)\` | Build URL from components |
+| \`urljoin(base, path)\` | Join base + relative path safely |
+
+\`\`\`python
+from urllib.parse import urlencode, urlparse, urlunparse
+
+qs = urlencode({"q": "python web", "page": "2"})
+print(qs)   # q=python+web&page=2
+
+# Build full URL from base + path + query
+base = "https://api.example.com"
+path = "/v1/users"
+query = {"active": "true"}
+
+parts = urlparse(base)
+full = urlunparse((parts.scheme, parts.netloc, path, "", urlencode(query), ""))
+print(full)
+# https://api.example.com/v1/users?active=true
+\`\`\`
+
+**Professional abbreviations:** **URL** (full string), **URI** (resource identifier — often used interchangeably in APIs), **QS** / **query string** (after \`?\`), **path** (route), **netloc** (host + port).`,
       },
       {
         type: 'code',
         language: 'python',
         filename: 'querystring.py',
-        code: `from urllib.parse import urlencode
+        code: `from urllib.parse import urlencode, urlparse, urlunparse
 
-qs = urlencode({"q": "python web", "page": "2"})
-print(qs)  # q=python+web&page=2`,
+# Query string only
+params = {"q": "python web", "page": "2", "sort": "name"}
+qs = urlencode(params)
+print(qs)
+# q=python+web&page=2&sort=name
+
+# Special characters are encoded
+print(urlencode({"email": "a+b@c.com"}))
+# email=a%2Bb%40c.com
+
+def build_url(base: str, path: str, query: dict[str, str]) -> str:
+    p = urlparse(base)
+    return urlunparse((p.scheme, p.netloc, path, "", urlencode(query), ""))
+
+print(build_url("https://api.example.com", "/v1/users", {"active": "true"}))`,
       },
       {
         type: 'callout',
-        tone: 'clarification',
-        title: '`if __name__ == "__main__"`',
+        tone: 'tip',
+        title: 'Stdlib map for full-stack Python',
         content:
-          'When Python loads a file, it sets `__name__` to `"__main__"` only for the entry file you ran (`python app/cli.py`). When the same file is imported elsewhere, `__name__` is the module path (e.g. `app.cli`). Put demos and argparse under the guard so `import app.cli` does not run your CLI side effects.',
+          '`pathlib` paths · `json` serialization · `urllib.parse` URLs · `datetime` timestamps · `logging` logs · `os.environ` config · `sys.argv` CLI · `subprocess` shell commands (use carefully) · `hashlib` checksums · `re` regex. Learn these before reaching for third-party duplicates.',
       },
       {
         type: 'exercise',
         title: 'Find project root marker',
         description:
-          '`find_repo_root(start: Path, marker: str = ".git") -> Path | None`: walk `start.parents` (and `start`), return first directory containing `marker`; else None.',
+          'Implement `find_repo_root(start: Path, marker: str = ".git") -> Path | None`. Walk **up** the directory tree from `start`: check `start`, then `start.parent`, then `start.parent.parent`, … until you find a folder that contains a file or directory named `marker` (e.g. `.git`). Return that directory’s `Path`, or `None` if you reach the filesystem root without finding it. Use `start.parents` and `(directory / marker).exists()`.',
         language: 'python',
         starterCode: `from pathlib import Path
 
@@ -99,7 +325,7 @@ def find_repo_root(start: Path, marker: str = ".git") -> Path | None:
         type: 'exercise',
         title: 'Build API URL',
         description:
-          'Given base `"https://api.example.com"` (no trailing slash), path `"/v1/users"`, and query dict `{"active": "true"}`, return full URL string using `urllib.parse`.',
+          'Implement `build_url(base, path, query)` returning a full URL string. Example: base `"https://api.example.com"`, path `"/v1/users"`, query `{"active": "true"}` → `"https://api.example.com/v1/users?active=true"`. Use `urlparse(base)` to keep scheme and host, `urlencode(query)` for the query part, and `urlunparse(...)` to assemble. Do not concatenate strings manually — spaces and `&` must be encoded.',
         language: 'python',
         starterCode: `from urllib.parse import urlencode, urlunparse
 
