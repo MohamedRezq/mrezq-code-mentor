@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ChevronDown, ChevronRight, Lightbulb, AlertTriangle, Info, Zap, Star, BookOpenCheck } from 'lucide-react'
 import { CodeBlock } from './code-block'
+import { PythonPlayground } from '@/components/editor/python-playground'
 import type { ContentBlock, CalloutTone } from '@/types/lesson'
 
 const CALLOUT_CONFIG: Record<CalloutTone, {
@@ -77,6 +78,9 @@ function Exercise({
 
       <div className="p-5 space-y-4">
         <CodeBlock code={starterCode} language={language} filename="starter.py" />
+        {language.toLowerCase() === 'python' && (
+          <PythonPlayground initialCode={starterCode} />
+        )}
 
         {hints && hints.length > 0 && (
           <div>
@@ -196,14 +200,17 @@ export function ContentRenderer({ blocks }: ContentRendererProps) {
         }
 
         if (block.type === 'code') {
+          const isPython = block.language.toLowerCase() === 'python'
           return (
-            <CodeBlock
-              key={i}
-              code={block.code}
-              language={block.language}
-              filename={block.filename}
-              explanation={block.explanation}
-            />
+            <div key={i}>
+              <CodeBlock
+                code={block.code}
+                language={block.language}
+                filename={block.filename}
+                explanation={block.explanation}
+              />
+              {isPython && <PythonPlayground initialCode={block.code} />}
+            </div>
           )
         }
 

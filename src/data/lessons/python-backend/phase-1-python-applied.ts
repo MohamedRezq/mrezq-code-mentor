@@ -361,57 +361,101 @@ def build_url(base: str, path: str, query: dict[str, str]) -> str:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Pick the right collection (Big-O intuition)
+
+| Type | Ordered? | Mutable? | Unique keys? | Typical use |
+|------|----------|----------|--------------|-------------|
+| \`list\` | yes | yes | duplicates OK | sequences, stacks |
+| \`tuple\` | yes | no | duplicates OK | fixed records, dict keys |
+| \`set\` | no* | yes | yes | tags, membership, dedupe |
+| \`dict\` | yes (3.7+) | yes | keys unique | maps, JSON-like objects |
+
+\*Iteration order of sets is undefined but stable in CPython 3.7+ for a given run.
+
+**Membership:** \`x in some_set\` is O(1) average; \`x in some_list\` is O(n). For “have we seen this user id?” use a \`set\`.`,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'collections_demo.py',
         code: `from collections import Counter, defaultdict, deque
-import copy
 
-# List — ordered, mutable
+# List — append, sort in place
 nums = [3, 1]
 nums.append(2)
+print(nums)  # [3, 1, 2]
 
-# Tuple — ordered, immutable (good dict keys if contents hashable)
+# Tuple — unpack, immutable
 point = (10, 20)
+x, y = point
 
-# Set — unique, unordered iteration
+# Set — union with |=
 tags = {"py", "web"}
 tags |= {"api"}
+print(tags)  # {'py', 'web', 'api'} order may vary
 
-# Dict — insertion ordered in Python 3.7+
+# Dict — get with default
 user = {"name": "AC", "role": "admin"}
-
-# Shallow vs deep
-row = {"a": [1]}
-clone = row.copy()           # shallow
-clone["a"].append(2)         # mutates row["a"] too!
-safe = copy.deepcopy(row)
-
-# defaultdict — avoid key checks
-by_role: dict[str, list[str]] = defaultdict(list)
-by_role["admin"].append("alice")
-
-# Counter
-Counter("mississippi")["s"]  # 4
-
-# deque — O(1) ends
-q: deque[str] = deque()
-q.append("job1")
-q.popleft()`,
+print(user.get("email", "n/a"))`,
+        explanation: '`.get(key, default)` avoids KeyError when a key might be missing.',
       },
       {
         type: 'text',
-        markdown: `### Set comprehension vs list comprehension
+        markdown: `## Shallow copy vs deep copy — the bug that survives code review
+
+\`\`\`python
+row = {"a": [1]}
+clone = row.copy()      # shallow: new dict, SAME inner list
+clone["a"].append(2)
+print(row)              # {'a': [1, 2]}  — surprise!
+\`\`\`
+
+| Method | Copies | Nested lists inside dict? |
+|--------|--------|---------------------------|
+| \`.copy()\`, \`dict(...)\`, \`[:]\` | **Shallow** | Shared |
+| \`copy.deepcopy(x)\` | **Deep** | Independent |
+
+Use **deepcopy** when duplicating nested structures (config trees, cached graphs).`,
+      },
+      {
+        type: 'text',
+        markdown: `## \`defaultdict\` and \`Counter\` — stdlib power tools
+
+**Group records without \`if key not in d\`:**
+
+\`\`\`python
+from collections import defaultdict
+by_role = defaultdict(list)
+by_role["admin"].append("alice")  # creates [] automatically
+\`\`\`
+
+**Count occurrences:**
+
+\`\`\`python
+from collections import Counter
+c = Counter("mississippi")
+print(c["s"])  # 4
+print(c.most_common(2))  # [('i', 4), ('s', 4)] — tie order arbitrary
+\`\`\`
+
+**\`deque\`** — double-ended queue, O(1) \`append\` / \`popleft\` (job queues, BFS).`,
+      },
+      {
+        type: 'text',
+        markdown: `### Set vs list comprehension
 
 \`\`\`python
 {len(w) for w in ["aa", "bb", "a"]}   # set → {1, 2}
 [len(w) for w in ["aa", "bb", "a"]]   # list → [2, 2, 1]
 \`\`\`
 
-- **Set** \`{ expr for ... }\` — unique values, **no guaranteed order** when printing.
-- **List** \`[ expr for ... ]\` — keeps duplicates and order.
+| Syntax | Brackets | Keeps duplicates? |
+|--------|----------|-------------------|
+| Set comp | \`{ ... for ... }\` | No — unique values only |
+| List comp | \`[ ... for ... ]\` | Yes — preserves order |
 
-\`{1, 2}\` and \`{2, 1}\` compare equal. Use a set when uniqueness matters (tags, IDs seen, distinct lengths).`,
+\`{1, 2} == {2, 1}\` is True. Use a set when uniqueness matters (tags, IDs seen).`,
       },
       {
         type: 'callout',
@@ -481,29 +525,57 @@ def merge_stock(deltas: list[tuple[str, int]]) -> dict[str, int]:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Exception flow — \`try\` / \`except\` / \`else\` / \`finally\`
+
+| Block | Runs when |
+|-------|-----------|
+| \`try\` | Body that might fail |
+| \`except SomeError\` | Matching exception raised |
+| \`else\` | **No** exception in \`try\` (rare but useful for “success path only”) |
+| \`finally\` | **Always** — cleanup, close sockets |
+
+**Rules for production code:**
+
+1. Catch **specific** exceptions (\`ValueError\`, \`httpx.TimeoutException\`) — not bare \`except:\`.
+2. Re-raise with context: \`raise PaymentError("...") from exc\` preserves \`__cause__\` for logs.
+3. Define domain errors: \`class PaymentError(Exception): ...\``,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'errors.py',
         code: `class PaymentError(Exception):
     """Base for payment failures."""
 
-
 def charge(amount: float) -> None:
     if amount <= 0:
         raise ValueError("amount must be positive")
     try:
-        # simulate gateway
-        raise RuntimeError("timeout")
+        raise RuntimeError("timeout")  # simulate gateway
     except RuntimeError as exc:
         raise PaymentError("could not charge") from exc
-
 
 try:
     charge(-1)
 except ValueError as err:
     print("client fix:", err)
 except PaymentError as err:
-    print("ops alert:", err.__cause__)`,
+    print("ops alert:", err, "cause:", err.__cause__)`,
+        explanation: 'First call raises ValueError; if you called charge(10) you would see PaymentError with __cause__ = RuntimeError.',
+      },
+      {
+        type: 'text',
+        markdown: `## File I/O with \`pathlib\` — always specify encoding
+
+| Method | Use for |
+|--------|---------|
+| \`path.write_text(s, encoding="utf-8")\` | Small files, overwrite |
+| \`path.read_text(encoding="utf-8")\` | Read entire file into memory |
+| \`path.open("r", encoding="utf-8")\` | Large files — stream line by line |
+| \`path.open("a", ...)\` | Append (logs, JSONL) |
+
+**Context manager** \`with path.open(...) as fh:\` closes the file even if an exception fires — prefer over manual \`try/finally\`.`,
       },
       {
         type: 'code',
@@ -512,24 +584,13 @@ except PaymentError as err:
         code: `from pathlib import Path
 
 path = Path("notes.txt")
-
-# Writing — creates or overwrites
 path.write_text("hello\\nworld\\n", encoding="utf-8")
+print(path.read_text(encoding="utf-8"))
 
-# Reading whole file at once (fine for small files)
-content = path.read_text(encoding="utf-8")
-
-# Streaming large files
 with path.open("r", encoding="utf-8") as fh:
     for line in fh:
-        process(line)  # type: ignore[name-defined]`,
-      },
-      {
-        type: 'callout',
-        tone: 'clarification',
-        title: '`try` / `except` / `else` / `finally`',
-        content:
-          '`except` runs only on matching exceptions. `else` runs if no exception escaped the `try`. `finally` always runs (cleanup, closing sockets) — even after `return` inside `try`. Prefer `with open(...) as f:` over manual `try/finally` for files; the context manager closes the handle for you.',
+        print(line.rstrip())`,
+        explanation: '`.rstrip()` removes trailing newline when printing; keeps lines clean.',
       },
       {
         type: 'exercise',
@@ -591,6 +652,27 @@ def append_event(path: Path, payload: dict) -> None:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## JSON ↔ Python mapping
+
+| JSON | Python (\`json.loads\`) |
+|------|-------------------------|
+| object | \`dict\` |
+| array | \`list\` |
+| string | \`str\` |
+| number | \`int\` / \`float\` |
+| true/false | \`True\` / \`False\` |
+| null | \`None\` |
+
+| Function | Direction | Typical use |
+|----------|-----------|-------------|
+| \`json.loads(s)\` | string → Python | Parse API response body |
+| \`json.dumps(obj)\` | Python → string | Build request body |
+| \`json.load(f)\` / \`json.dump(obj, f)\` | file ↔ Python | Config files, export |
+
+**Not JSON-serializable by default:** \`datetime\`, \`set\`, custom classes — pass \`default=\` to \`dumps\`.`,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'json_dt.py',
@@ -604,29 +686,27 @@ def encode(obj):
         return obj.isoformat()
     raise TypeError
 
-
 text = json.dumps(payload, default=encode)
+print(text)
 roundtrip = json.loads(text)
-
 parsed = datetime.fromisoformat(roundtrip["at"].replace("Z", "+00:00"))
+print(parsed.tzinfo)  # UTC offset
 
-# Offsets
-utc = timezone.utc
-later = datetime.now(utc) + timedelta(hours=2)`,
+later = datetime.now(timezone.utc) + timedelta(hours=2)
+print(later.isoformat())`,
+        explanation: 'Store UTC (`timezone.utc`) in databases; convert to local time only in the UI layer.',
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: '`json.loads` vs `json.dumps`',
-        content:
-          '`loads` = **load string** (JSON text → Python objects). `dumps` = **dump string** (Python → JSON text). For files use `json.load` / `json.dump` with an open file handle. `default=` on `dumps` teaches the encoder how to serialize non-JSON-native types like `datetime`.',
-      },
-      {
-        type: 'callout',
-        tone: 'warning',
-        title: 'Naive datetimes',
-        content:
-          'A datetime without tzinfo is naive — dangerous for scheduling. Prefer UTC at storage boundaries, convert at the edge for display.',
+        type: 'text',
+        markdown: `## Datetime vocabulary
+
+| Term | Meaning | Example |
+|------|---------|---------|
+| **Naive** | No \`tzinfo\` | \`datetime(2026, 5, 24, 12, 0)\` — ambiguous |
+| **Aware** | Has \`tzinfo\` | \`datetime.now(timezone.utc)\` |
+| **ISO-8601** | String interchange | \`2026-05-24T12:00:00+00:00\` |
+
+**Production rule:** UTC at storage boundaries; convert for display. Never compare naive and aware datetimes without normalizing.`,
       },
       {
         type: 'exercise',
@@ -694,27 +774,51 @@ def max_age_seconds(expires_at: datetime) -> int:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Raw strings — why \`r"..."\` for patterns
+
+Backslashes in regex mean special things (\`\\d\`, \`\\w\`). In normal strings you would write \`"\\\\d+"\`; in raw strings:
+
+\`\`\`python
+r"\\d+"   # what you mean: digit one or more
+\`\`\`
+
+| Function | Anchoring | Use for |
+|----------|-----------|---------|
+| \`re.match(pat, s)\` | start of string only | “Does header look like …?” |
+| \`re.search(pat, s)\` | first match anywhere | logs, extract from blob |
+| \`re.fullmatch(pat, s)\` | entire string | validators (email, IPv4) |
+| \`re.findall(pat, s)\` | all non-overlapping | pull all numbers |
+
+**Compile once** in hot paths: \`EMAIL = re.compile(r"...")\` then \`EMAIL.search(text)\`.`,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'regex.py',
         code: `import re
 
-pattern = re.compile(r"[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}")
+EMAIL = re.compile(r"[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}")
+m = EMAIL.search("mail me x@y.co ok")
+print(m.group(0) if m else None)  # x@y.co
 
-pattern.search("mail me x@y.co ok")
-# <re.Match ...>
+print(re.findall(r"\\d+", "a1b2"))  # ['1', '2']
 
-re.findall(r"\\d+", "a1b2")   # ["1", "2"]
-
-m = re.fullmatch(r"[a-z]{3}", "abc")
-m is not None  # True`,
+print(re.fullmatch(r"[a-z]{3}", "abc") is not None)  # True
+print(re.fullmatch(r"[a-z]{3}", "abcd") is not None)  # False`,
+        explanation: '`.group(0)` is the whole match; `.group(1)` is the first capturing `(...)` parenthesis.',
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: '`re.match` vs `search` vs `fullmatch`',
-        content:
-          '`match` anchors at the **start** of the string only (as if the pattern had `\\A`). `search` scans until it finds the first match anywhere. `fullmatch` requires the pattern to cover the **entire** string (common for validators). When unsure, `search` + groups or `fullmatch` for strict inputs.',
+        type: 'text',
+        markdown: `## Named groups — readable extraction
+
+\`\`\`python
+m = re.search(r"trace=(?P<id>[^\\s]+)", "trace=abc-123 done")
+if m:
+    print(m.group("id"))  # abc-123
+\`\`\`
+
+**When regex is the wrong tool:** parsing JSON, HTML, or nested structures — use proper parsers (\`json.loads\`, BeautifulSoup, etc.). Regex is for **small, stable patterns** (IDs, log fields, simple validation).`,
       },
       {
         type: 'exercise',
@@ -776,14 +880,28 @@ def ipv4_loose(s: str) -> bool:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Classes vs dataclasses vs protocols
+
+| Tool | Best for |
+|------|----------|
+| **Plain class** | Behavior + mutable state (\`Account\`, services) |
+| **\`@dataclass\`** | Data carriers (DTOs, config rows) — less boilerplate |
+| **\`Protocol\`** | “Anything with these methods” — structural typing |
+
+### \`@dataclass(slots=True)\` (Python 3.10+)
+
+- Auto-generates \`__init__\`, \`__repr__\`, comparisons (if enabled).
+- \`slots=True\` — fixed attributes, lower memory (API models).
+- \`field(default_factory=tuple)\` — **never** use mutable defaults like \`roles=[]\` in the signature.`,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'oop.py',
         code: `from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Protocol
-
 
 @dataclass(slots=True)
 class UserDTO:
@@ -791,34 +909,37 @@ class UserDTO:
     email: str
     roles: tuple[str, ...] = field(default_factory=tuple)
 
-
 class Greeter(Protocol):
     def greet(self, name: str) -> str: ...
-
 
 class EnGreeter:
     def greet(self, name: str) -> str:
         return f"Hello {name}"
 
-
 def announce(g: Greeter, who: str) -> str:
     return g.greet(who).upper()
 
+print(announce(EnGreeter(), "dev"))  # HELLO DEV
 
 class Account:
     def __init__(self, owner_id: str, balance: float = 0) -> None:
         self.owner_id = owner_id
-        self._balance = balance
+        self._balance = balance  # leading _ = "internal"
 
     def __repr__(self) -> str:
-        return f"Account(owner_id={repr(self.owner_id)}, balance={self._balance:.2f})"`,
+        return f"Account({self.owner_id!r}, {self._balance:.2f})"`,
+        explanation: '`__repr__` is for developers (debug logs); `__str__` is for end users — implement `__repr__` well first.',
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: '`Protocol` vs ABC inheritance',
-        content:
-          'A `Protocol` describes **shape**: “anything with these methods is acceptable.” Type checkers enforce it; at runtime Python does not wrap objects. Inheritance from `ABC` + `@abstractmethod` forces subclasses to opt in explicitly. Protocols shine for adapters (DB backends, HTTP clients) without importing heavy base classes.',
+        type: 'text',
+        markdown: `## \`Protocol\` vs ABC inheritance
+
+| Approach | Runtime enforcement | Typical use |
+|----------|---------------------|-------------|
+| **Protocol** | Duck typing only | Inject fake repos in tests; swap HTTP clients |
+| **ABC + @abstractmethod** | Subclass must implement | Framework plugin APIs |
+
+\`Protocol\` methods use \`...\` as the body — that is typing syntax, not runnable code. Type checkers (mypy/pyright) verify callers; Python at runtime does not.`,
       },
       {
         type: 'exercise',
@@ -899,11 +1020,40 @@ def display(repo: SupportsUserLookup, user_id: int) -> str:
     ],
     content: [
       {
-        type: 'callout',
-        tone: 'production',
-        title: 'Logging beats print in services',
-        content:
-          'Decorators that `print` are for learning. In FastAPI/Django/Celery use `structlog` or `logging` with correlation ids.',
+        type: 'text',
+        markdown: `## Generators — lazy sequences (memory-friendly)
+
+A function with \`yield\` **pauses** and returns a value; the next \`next()\` or \`for\` loop iteration resumes after that \`yield\`.
+
+| Approach | Memory for 1M rows |
+|----------|-------------------|
+| \`[process(x) for x in huge]\` | Holds all results |
+| \`yield\` in a loop | One item at a time |
+
+\`\`\`python
+def gen_squares(n: int):
+    for i in range(n):
+        yield i * i
+
+for x in gen_squares(5):
+    print(x)  # 0, 1, 4, 9, 16 — computed on demand
+\`\`\`
+
+**Scenario:** Stream a 10 GB log file — never load it all into a list.`,
+      },
+      {
+        type: 'text',
+        markdown: `## Decorators — wrap functions without changing call sites
+
+\`@timed\` above a function is sugar for \`func = timed(func)\`.
+
+| Piece | Role |
+|-------|------|
+| Outer function | Receives the **original** function |
+| Inner \`wrapper\` | Runs before/after, then returns result |
+| \`return wrapper\` | Replaces the name with wrapped version |
+
+Use decorators for cross-cutting concerns: timing, auth checks, retries. In production, log with \`logging\` / \`structlog\`, not \`print\`.`,
       },
       {
         type: 'code',
@@ -919,7 +1069,6 @@ from typing import TypeVar, ParamSpec
 P = ParamSpec("P")
 R = TypeVar("R")
 
-
 def timed(fn: Callable[P, R]) -> Callable[P, R]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         start = time.perf_counter()
@@ -927,14 +1076,16 @@ def timed(fn: Callable[P, R]) -> Callable[P, R]:
             return fn(*args, **kwargs)
         finally:
             print(f"\${fn.__name__} took {time.perf_counter() - start:.4f}s")
-
     return wrapper
 
+@timed
+def slow_add(a: int, b: int) -> int:
+  time.sleep(0.01)
+  return a + b
 
 def gen_squares(n: int) -> Iterator[int]:
     for i in range(n):
         yield i * i
-
 
 @contextmanager
 def transaction():
@@ -945,13 +1096,25 @@ def transaction():
     except Exception:
         print("ROLLBACK")
         raise`,
+        explanation: 'ParamSpec/TypeVar preserve the wrapped function’s type signature for checkers — optional but professional.',
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: 'Generators and lazy iteration',
-        content:
-          'A function with `yield` returns a **generator iterator** — values are computed on demand, not stored in a list. That keeps memory flat when streaming logs or paginating DB rows. Each `for` over a generator advances execution until the next `yield` or `StopIteration`.',
+        type: 'text',
+        markdown: `## Context managers — \`with\` guarantees cleanup
+
+\`with transaction():\` calls \`__enter__\` (or code before \`yield\` in \`@contextmanager\`), runs your block, then \`__exit__\` / finally logic even on exceptions.
+
+| Built-in | Closes |
+|----------|--------|
+| \`with open(...)\` | file handle |
+| \`with lock:\` | releases lock |
+| Custom \`@contextmanager\` | DB transactions, temp dirs |
+
+\`\`\`python
+with transaction():
+    save_order()   # COMMIT on success
+    # ROLLBACK + re-raise if save_order() raises
+\`\`\``,
       },
       {
         type: 'exercise',

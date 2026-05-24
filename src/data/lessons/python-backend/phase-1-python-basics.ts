@@ -23,67 +23,91 @@ export const pythonBasicsLessons: Lesson[] = [
     content: [
       {
         type: 'text',
-        markdown: `## Why this track is “full-stack ready”
+        markdown: `## What you need installed
 
-You will use Python on servers (APIs, workers, automation), in data scripts that feed dashboards, and beside TypeScript front ends. The same language skills apply: readable code, solid tests, and predictable I/O.`,
+| Tool | Purpose |
+|------|---------|
+| **Python 3.12+** | Language runtime (\`python\` command) |
+| **venv** | Isolated dependencies per project |
+| **Editor** | VS Code / Cursor with Python extension |
+
+Check version:
+
+\`\`\`bash
+python --version   # Python 3.12.x or newer
+\`\`\`
+
+**PEP 8** = style guide (snake_case variables, 4-space indent). **ruff** / **black** = tools that enforce it automatically in real teams.`,
       },
       {
-        type: 'code',
-        language: 'bash',
-        filename: 'terminal.sh',
-        code: `# Check version (use 3.11+; 3.12 is common in 2026)
-python --version
+        type: 'text',
+        markdown: `## REPL vs \`.py\` file — two ways to run Python
 
-# One-off command
-python -c "print('Hello, SeniorPath')"
+| Mode | How | When to use |
+|------|-----|-------------|
+| **REPL** | Type \`python\` with no filename; each line runs instantly | Quick experiments: \`len("hi")\`, \`2**10\` |
+| **Script** | Save \`main.py\`, run \`python main.py\` | Anything you need tomorrow — apps, tests, deploy |
 
-# REPL: type python, then exit with exit() or Ctrl+Z Enter (Windows) / Ctrl+D (Unix)
+REPL output is **lost** when you close the terminal unless you copy it. Files are version-controlled and repeatable.
 
-# Run a file
-python main.py`,
+\`\`\`bash
+python -c "print('one-liner')"   # run a string as code
+python main.py                   # run a file top-to-bottom
+\`\`\``,
+      },
+      {
+        type: 'text',
+        markdown: `## Variables, naming, and basic types
+
+| Name style | Example | Use for |
+|------------|---------|---------|
+| \`snake_case\` | \`user_count\` | Variables, functions |
+| \`SCREAMING_SNAKE\` | \`MAX_RETRIES\` | Constants (by convention) |
+| \`PascalCase\` | \`UserDTO\` | Classes (later) |
+
+| Type | Example | Notes |
+|------|---------|-------|
+| \`int\` | \`42\` | Whole numbers, unbounded |
+| \`float\` | \`3.14\` | Decimal; avoid for money in production |
+| \`str\` | \`"hello"\` | Text, immutable |
+| \`bool\` | \`True\`, \`False\` | Note capital T/F |
+| \`None\` | \`None\` | “No value” sentinel — compare with \`is None\` |
+
+### Unpacking (read code professionally)
+
+\`\`\`python
+x, y, z = 1, 2, 3              # tuple unpacking from right-hand values
+first, *middle, last = [1,2,3,4,5]  # *middle = greedy list of middle items
+a, b = 10, 20
+a, b = b, a                      # swap without temp variable
+\`\`\`
+
+**Output of \`first, *middle, last = [1,2,3,4,5]\`:** \`first=1\`, \`middle=[2,3,4]\`, \`last=5\`.`,
       },
       {
         type: 'code',
         language: 'python',
         filename: 'main.py',
-        code: `"""Module docstring — first line is a short summary."""
+        code: `"""Module docstring — summary of this file (first line matters for help())."""
 
-# Single-line comment
+# Comment — ignored by Python
 
-user = "dev"           # snake_case for variables
-MAX_RETRIES = 3        # SCREAMING_SNAKE for constants
+user = "dev"
+MAX_RETRIES = 3
 
-# Multiple assignment / unpacking
 x, y, z = 1, 2, 3
 first, *middle, last = [1, 2, 3, 4, 5]
+print(first, middle, last)  # 1 [2, 3, 4] 5
 
-# Swap without a temp
-a, b = 10, 20
-a, b = b, a
-
-# Basic printing (later you will prefer logging in apps)
-print("User:", user, "retries:", MAX_RETRIES, sep=" | ")
-`,
-      },
-      {
-        type: 'callout',
-        tone: 'clarification',
-        title: 'REPL vs running a file',
-        content:
-          'REPL (`python` with no file): each line runs immediately — great for experiments; nothing is saved unless you copy it out. A `.py` file runs top to bottom once; that is what you ship, test, and deploy. Use the REPL to probe APIs; use files for anything you need tomorrow.',
+print(f"User: {user} | retries: {MAX_RETRIES}")`,
+        explanation: 'f-strings (f"...") embed expressions in strings — preferred over concatenation.',
       },
       {
         type: 'callout',
         tone: 'production',
         title: 'Indentation is syntax',
         content:
-          'Python uses 4 spaces per level (never tabs mixed with spaces). Wrong indentation is a SyntaxError or changes control flow — the interpreter does not “guess” like some languages.',
-      },
-      {
-        type: 'callout',
-        tone: 'tip',
-        title: 'Python 2 is dead',
-        content: 'Do not learn `print` statements, `xrange`, or `unicode` types. Everything here is Python 3 only.',
+          'Python uses 4 spaces per block level. Mixing tabs and spaces causes IndentationError. The colon `:` at the end of `if`, `for`, `def` starts a new indented block.',
       },
       {
         type: 'exercise',
@@ -142,78 +166,116 @@ print(f"{name.title()} — {role} ({years}y)")`,
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Checking types at runtime
+
+| Function | Example | When to use |
+|----------|---------|-------------|
+| \`type(x)\` | \`type(42) is int\` | Debugging — rarely in production logic |
+| \`isinstance(x, int)\` | \`isinstance(True, int)\` → **True** | Prefer this — respects inheritance |
+
+**Why \`bool\` is a subclass of \`int\`:** In Python, \`True == 1\` and \`False == 0\` for numeric contexts. So \`isinstance(True, int)\` is True — usually you still branch on \`isinstance(x, bool)\` first if you care.
+
+### Casting (conversion)
+
+| Call | Input → Output | Failure |
+|------|----------------|---------|
+| \`int("10")\` | \`10\` | \`ValueError\` if not digits |
+| \`float("3.5")\` | \`3.5\` | invalid format |
+| \`str(99)\` | \`"99"\` | never fails |
+| \`bool("")\` | \`False\` | empty string is **falsy** |
+| \`bool("no")\` | \`True\` | any non-empty string is **truthy** |
+
+Type hints like \`label: str | None = None\` help editors and mypy; they do **not** convert at runtime.`,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'types.py',
         code: `n = 42
-pi = 3.14159
-flag = True
-label: str | None = None  # optional str (3.10+ union syntax)
-
-type(n)            # <class 'int'>
-isinstance(n, int) # True
+print(type(n))              # <class 'int'>
+print(isinstance(n, int))   # True
+print(isinstance(True, int))  # True — bool subclasses int
 
 # Casting
-int("10")          # 10
-float("3.5")       # 3.5
-str(99)            # "99"
-bool("")           # False — empty string is falsy
-bool("no")         # True — non-empty string is truthy`,
+print(int("10"), float("3.5"), str(99))
+print(bool(""), bool("no"))  # False, True`,
+        explanation: 'Run this file and compare each print to the comments — that is how you learn runtime behavior.',
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: '`isinstance` vs `type()`',
-        content:
-          'Prefer `isinstance(x, int)` over `type(x) is int`. The former is True for subclasses (e.g. `bool` is a subclass of `int` — usually you still want separate branches for bool). `type(x) is int` rejects subclasses and is rarely what you want.',
-      },
-      {
-        type: 'callout',
-        tone: 'clarification',
-        title: 'Strings never change in place',
-        content:
-          'Every method like `.strip()` or `.lower()` returns a new `str`. Assign back: `s = s.strip()`. Slicing `s[1:4]` also builds a new string. That is why building huge strings in a loop with `+=` is slow — use `list` + `join` or `io.StringIO`.',
+        type: 'text',
+        markdown: `## Strings are immutable sequences
+
+Every transform **returns a new string**. The original is unchanged unless you reassign:
+
+\`\`\`python
+s = "  hello  "
+s.strip()   # returns "hello" — s is STILL "  hello  "
+s = s.strip()  # now s is "hello"
+\`\`\`
+
+| Operation | Example | Result |
+|-----------|---------|--------|
+| \`.lower()\` / \`.upper()\` | \`"Hi".lower()\` | \`"hi"\` |
+| \`.strip()\` | \`"  x  ".strip()\` | \`"x"\` (both ends) |
+| \`.split(",")\` | \`"a,b".split(",")\` | \`["a", "b"]\` |
+| \`"-".join(["a","b"])\` | join list with separator | \`"a-b"\` |
+
+### Indexing and slicing (end index is **exclusive**)
+
+\`\`\`python
+t = "SeniorPath"
+t[0]      # "S" — first char
+t[-1]     # "h" — last char
+t[0:6]    # "Senior" — chars at index 0..5
+t[::-1]   # "htaProineS" — step -1 reverses
+\`\`\`
+
+**Scenario:** Parse a URL path segment without regex:
+
+\`\`\`python
+path = "learn/python"
+parts = path.split("/")   # ["learn", "python"]
+module = parts[-1]        # "python"
+\`\`\``,
       },
       {
         type: 'code',
         language: 'python',
         filename: 'strings.py',
         code: `s = "  Python Full-Stack  "
+print(repr(s.strip()))           # 'Python Full-Stack'
+print("-".join(["api", "v1"]))   # api-v1
 
-s.lower()          # "  python full-stack  "
-s.strip()          # "Python Full-Stack"
-"A,B,C".split(",") # ["A", "B", "C"]
-"-".join(["a", "b"])  # "a-b"
-
-path = "learn/python"
-path.split("/")    # ["learn", "python"]
-
-# Indexing & slicing (end exclusive)
-t = "SeniorPath"
-t[0]               # "S"
-t[-1]              # "h"
-t[0:6]             # "Senior"
-t[::-1]            # reversed
-
-# f-strings (preferred)
 price = 19.99
-f"Total: {price:.2f} USD"   # two decimal places
+print(f"Total: \${price:.2f} USD")  # Total: $19.99 USD
 
-# Legacy but still seen in older codebases
-"Total: {:.2f}".format(price)
-
-# Multi-line
-query = """
-SELECT id, title
-FROM courses WHERE published = true
-""".strip()`,
+# repr() in f-string for debugging
+user = None
+print(f"user={user!r}")  # user=None`,
+        explanation: '`:.2f` inside `{...}` formats floats to two decimal places. `!r` calls repr() for clearer debug output.',
       },
       {
-        type: 'callout',
-        tone: 'warning',
-        title: 'Floats and money',
-        content:
-          '0.1 + 0.2 != 0.3 in binary floating point. For currency in production use `decimal.Decimal` or store integer cents — not raw `float`.',
+        type: 'text',
+        markdown: `## Floats vs money (production rule)
+
+\`\`\`python
+>>> 0.1 + 0.2
+0.30000000000000004
+>>> 0.1 + 0.2 == 0.3
+False
+\`\`\`
+
+| Approach | When |
+|----------|------|
+| Store **integer cents** | APIs, databases — \`1999\` = $19.99 |
+| \`decimal.Decimal\` | Exact decimal math in Python |
+| Raw \`float\` | Science, graphics — not ledgers |
+
+\`\`\`python
+from decimal import Decimal
+total = Decimal("19.99") + Decimal("0.01")  # Decimal('20.00')
+\`\`\``,
       },
       {
         type: 'exercise',
@@ -277,46 +339,60 @@ print(f"{item} x{qty} @ {unit:.2f} = {total:.2f}")`,
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Arithmetic operators
+
+| Op | Name | Example | Result |
+|----|------|---------|--------|
+| \`+\` \`-\` \`*\` \`/\` | usual | \`7 / 3\` | \`2.333...\` (float division) |
+| \`//\` | floor division | \`7 // 3\` | \`2\` |
+| \`%\` | remainder | \`7 % 3\` | \`1\` |
+| \`**\` | power | \`2 ** 10\` | \`1024\` |
+
+**Scenario:** Paginate API results — page size 20, item index 45:
+
+\`\`\`python
+page = 45 // 20   # 2 (zero-based page number)
+offset = 45 % 20  # 5 (position on page)
+\`\`\``,
+      },
+      {
+        type: 'text',
+        markdown: `## Comparisons and chained bounds
+
+\`0 < x < 10\` means \`(0 < x) and (x < 10)\` with \`x\` evaluated once — ideal for HTTP status families:
+
+\`\`\`python
+200 <= code < 300   # 2xx success
+\`\`\``,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'operators.py',
-        code: `# Arithmetic: + - * / // % **
-7 // 3    # 2 floor division
-7 % 3     # 1 remainder
-2 ** 10   # 1024 power
+        code: `# Logical — and / or / not
+print(True and False)   # False
+print(True or False)    # True
 
-# Comparison: == != < > <= >=
-# Chained
-0 < 5 < 10   # True
+# Short-circuit: returns a VALUE, not always bool
+print("ok" or "fallback")    # ok
+print("" or "fallback")      # fallback
+print(0 or 42)               # 42
 
-# Logical
-True and False
-True or False
-not True
-
-# Short-circuit returns last evaluated value
-"ok" or "fallback"   # "ok"
-"" or "fallback"     # "fallback"
-
-# Identity — same object?
+# Identity
 a = [1, 2]
 b = a
-a is b               # True
-a == [1, 2]          # True (equal values)
-a is [1, 2]          # False different list objects
+print(a is b)           # True — same object
+print(a == [1, 2])      # True — equal contents
+print(a is [1, 2])      # False — different objects
 
-# Always compare None with is (not ==)
+# None — always use "is" (identity), not ==
 x = None
-if x is None:
-    ...
+print(x is None)        # True
 
 # Membership
-"v" in "dev"         # True
-2 in {1, 2, 3}       # True
-
-# Assignment operators += *= etc.
-n = 10
-n += 5`,
+print("v" in "dev", 2 in {1, 2, 3})`,
+        explanation: '`or` is often used for defaults: `name = user_input or "Anonymous"`.',
       },
       {
         type: 'callout',
@@ -409,6 +485,28 @@ def normalize_method(raw: str) -> str | None:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## \`if\` / \`elif\` / \`else\` — early returns beat nesting
+
+**Anti-pattern:** deep nesting when each branch returns.
+
+\`\`\`python
+def tier(rpm: int) -> str:
+    if rpm < 60:
+        return "free"
+    if rpm < 600:
+        return "pro"
+    return "enterprise"
+\`\`\`
+
+| Pattern | Example | Use when |
+|---------|---------|----------|
+| **Ternary** | \`"even" if n % 2 == 0 else "odd"\` | Two simple outcomes on one line |
+| **Guard clauses** | \`if not user: return\` | Validate at top, happy path last |
+
+Colon \`:\` starts a block; the next lines must be **indented** (4 spaces).`,
+      },
+      {
         type: 'code',
         language: 'python',
         filename: 'if_chain.py',
@@ -420,15 +518,28 @@ def normalize_method(raw: str) -> str | None:
     else:
         return "enterprise"
 
-# Ternary
-label = "even" if n % 2 == 0 else "odd"`,
+print(rate_limit_tier(30))    # free
+print(rate_limit_tier(200))   # pro
+print(rate_limit_tier(900))   # enterprise
+
+n = 4
+label = "even" if n % 2 == 0 else "odd"
+print(label)  # even`,
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: 'Chained comparisons',
-        content:
-          '`a < b < c` is evaluated as `(a < b) and (b < c)` with `b` evaluated once. It is both readable and correct for ranges (e.g. `0 <= i < len(xs)`). Do not chain mixed operators in ways that confuse readers — when in doubt, use parentheses or separate `if`s.',
+        type: 'text',
+        markdown: `## \`match\` / \`case\` (Python 3.10+) — structural pattern matching
+
+Think of it as **destructuring** incoming data (dicts, tuples, classes) instead of a pile of \`.get()\` calls.
+
+| Feature | Syntax | Meaning |
+|---------|--------|---------|
+| Dict pattern | \`case {"type": "signup", "user_id": uid}:\` | Bind \`uid\` if keys match |
+| Guard | \`case {...} if amt > 0:\` | Extra condition after pattern |
+| Wildcard | \`case _:\` | Default (like \`else\`) |
+| Capture | \`case ("echo", parts):\` | \`parts\` is the rest of the tuple |
+
+**When to use:** webhook payloads, CLI commands, AST-like trees. **When not to:** single key lookup — \`data.get("id")\` is fine.`,
       },
       {
         type: 'code',
@@ -445,14 +556,10 @@ def handle_event(event: dict[str, Any]) -> str:
         case {"type": "error", "code": code}:
             return f"err {code}"
         case _:
-            return "unknown"`,
-      },
-      {
-        type: 'callout',
-        tone: 'info',
-        title: 'match is not a drop-in for dict.get',
-        content:
-          'Use `match` when structure varies and readability wins. For one-key lookups, `if` / `.get()` is fine — avoid cleverness.',
+            return "unknown"
+
+print(handle_event({"type": "signup", "user_id": 42}))`,
+        explanation: '`float() as amt` matches any float and binds it to `amt`. The guard `if amt > 0` rejects zero or negative amounts.',
       },
       {
         type: 'exercise',
