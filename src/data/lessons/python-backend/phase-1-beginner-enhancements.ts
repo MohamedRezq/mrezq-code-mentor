@@ -325,6 +325,64 @@ try:
 except FileNotFoundError:
     print("missing file")
 \`\`\``,
+    `## Error types reference (backend-focused)
+
+These are the exception types you will meet most in real backend Python:
+
+| Error type | Typical cause | Common handling |
+|-----------|----------------|-----------------|
+| \`ValueError\` | Value has wrong format/range (\`int("x")\`) | validate input, return 400 |
+| \`TypeError\` | Wrong type/arity (\`len(5)\`) | fix caller contract / schema |
+| \`KeyError\` | Missing dict key | use \`.get(...)\` or explicit key checks |
+| \`IndexError\` | List index out of bounds | bounds checks |
+| \`FileNotFoundError\` | File path does not exist | fallback/default/create file |
+| \`PermissionError\` | No OS permission | choose accessible path / fail clearly |
+| \`TimeoutError\` | Operation took too long | retry/backoff/alert |
+| \`ConnectionError\` | Network connection problem | retry + circuit breaker logic |
+| \`json.JSONDecodeError\` | Invalid JSON payload | return bad-request with details |
+| \`UnicodeDecodeError\` | Wrong text encoding | set correct encoding (utf-8) |
+| \`RuntimeError\` | Generic runtime failure | wrap to domain-specific exception |
+| \`AssertionError\` | Failing internal assertion | bug in assumptions/tests |
+
+Note: Python has many more built-in exceptions; this table covers the ones you should master first.`,
+    `## Useful attributes on \`err\` objects
+
+| Attribute | What it gives |
+|----------|----------------|
+| \`err.args\` | Original constructor args tuple |
+| \`str(err)\` | Human-readable message |
+| \`type(err).__name__\` | Exception class name |
+| \`err.__cause__\` | Explicit chained exception (\`raise ... from ...\`) |
+| \`err.__context__\` | Previous exception while handling another |
+| \`err.__traceback__\` | Stack trace object |
+
+Some exceptions add extra fields:
+- \`OSError\` family: \`errno\`, \`strerror\`, \`filename\`
+- \`json.JSONDecodeError\`: \`lineno\`, \`colno\`, \`pos\`
+
+\`\`\`python
+import json
+
+def demo(raw: str) -> None:
+    try:
+        json.loads(raw)
+    except Exception as err:
+        print("type:", type(err).__name__)
+        print("message:", str(err))
+        print("args:", err.args)
+        if hasattr(err, "lineno"):
+            print("line/col:", err.lineno, err.colno)
+
+demo("{bad json")
+\`\`\`
+
+Expected output (shape):
+\`\`\`
+type: JSONDecodeError
+message: ...
+args: (...)
+line/col: 1 ...
+\`\`\``,
   ],
   'py-json-datetime': [
     `## Beginner TL;DR
