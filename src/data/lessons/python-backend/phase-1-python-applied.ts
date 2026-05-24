@@ -174,6 +174,20 @@ q.append("job1")
 q.popleft()`,
       },
       {
+        type: 'text',
+        markdown: `### Set comprehension vs list comprehension
+
+\`\`\`python
+{len(w) for w in ["aa", "bb", "a"]}   # set → {1, 2}
+[len(w) for w in ["aa", "bb", "a"]]   # list → [2, 2, 1]
+\`\`\`
+
+- **Set** \`{ expr for ... }\` — unique values, **no guaranteed order** when printing.
+- **List** \`[ expr for ... ]\` — keeps duplicates and order.
+
+\`{1, 2}\` and \`{2, 1}\` compare equal. Use a set when uniqueness matters (tags, IDs seen, distinct lengths).`,
+      },
+      {
         type: 'callout',
         tone: 'clarification',
         title: 'Shallow copy vs deep copy',

@@ -1,6 +1,5 @@
 import type { Lesson } from '@/types/lesson'
 import { withEstimatedDuration } from '@/lib/lesson-duration'
-import { mergeReviewerEnhancements } from './reviewer-enhancements'
 import { pythonBasicsLessons } from './phase-1-python-basics'
 import { pythonAppliedLessons } from './phase-1-python-applied'
 import { pythonDSALessons } from './phase-2-dsa'
@@ -25,16 +24,8 @@ const rawPythonLessons: Lesson[] = [
   ...pythonReferenceLessons,
 ]
 
-function applyReviewerPass(lesson: Lesson): Lesson {
-  const withContent = {
-    ...lesson,
-    content: mergeReviewerEnhancements(lesson.id, lesson.content),
-  }
-  return withEstimatedDuration(withContent)
-}
-
-/** Reviewer pass merged + accurate 0.5h-step durations (beginner pace). */
-export const pythonBackendLessons: Lesson[] = rawPythonLessons.map(applyReviewerPass)
+/** Accurate 0.5h-step durations from lesson content (beginner pace). */
+export const pythonBackendLessons: Lesson[] = rawPythonLessons.map(withEstimatedDuration)
 
 export function getLessonById(id: string): Lesson | undefined {
   return pythonBackendLessons.find(l => l.id === id)

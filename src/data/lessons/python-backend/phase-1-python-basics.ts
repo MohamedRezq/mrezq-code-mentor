@@ -518,63 +518,141 @@ def handle_event(event: dict[str, Any]) -> str:
     ],
     content: [
       {
-        type: 'code',
-        language: 'python',
-        filename: 'loops.py',
-        code: `for i in range(3):
-    print(i)   # 0 1 2
+        type: 'text',
+        markdown: `## \`zip()\` — walk two (or more) sequences in parallel
 
-names = ["ana", "bo"]
-for idx, name in enumerate(names, start=1):
-    print(idx, name)
-
+\`\`\`python
 for a, b in zip([1, 2], ["x", "y"]):
     print(a, b)
+\`\`\`
 
-# while
+**Output:**
+
+\`\`\`
+1 x
+2 y
+\`\`\`
+
+### Step by step
+
+1. \`zip([1, 2], ["x", "y"])\` builds pairs: \`(1, "x")\`, then \`(2, "y")\`.
+2. \`for a, b in ...\` **unpacks** each pair into two variables.
+3. \`print(a, b)\` runs once per pair.
+
+### Scenarios you must recognize
+
+| Situation | What happens |
+|-----------|----------------|
+| Same length lists | All pairs produced |
+| Left longer | Stops at shorter list — extra items ignored |
+| Right longer | Same — stops at shorter |
+| Three lists | \`zip(a, b, c)\` → triples \`(a0,b0,c0)\`, … |
+| Need index + value | Prefer \`enumerate()\` instead of \`zip(range(len()), items)\` |
+| Build a dict | \`dict(zip(keys, values))\` |
+
+\`\`\`python
+# Unequal length — stops at 2
+list(zip([1, 2, 3], ["x", "y"]))        # [(1, 'x'), (2, 'y')]
+
+# Three sequences
+list(zip([1, 2], ["a", "b"], [True, False]))
+
+# Keys + values → dict
+keys = ["name", "role"]
+vals = ["Ada", "admin"]
+dict(zip(keys, vals))   # {"name": "Ada", "role": "admin"}
+\`\`\``,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'enumerate_and_while.py',
+        code: `names = ["ana", "bo"]
+for idx, name in enumerate(names, start=1):
+    print(idx, name)   # 1 ana, 2 bo
+
+# while — use when you don't know iterations upfront
 n = 0
 while n < 3:
+    print(n)
     n += 1
 
-# for-else: else runs if loop did NOT break
+# for-else: else runs only if loop did NOT break
+items = [1, 3, 5]
+target = 4
 for item in items:
     if item == target:
         found = item
         break
 else:
-    found = None`,
+    found = None   # runs because we never broke`,
+      },
+      {
+        type: 'text',
+        markdown: `## Set comprehension — \`{ ... for ... in ... }\`
+
+\`\`\`python
+unique_lengths = {len(w) for w in ["aa", "bb", "a"]}
+print(unique_lengths)   # {1, 2}
+\`\`\`
+
+### What happened
+
+| Word | Length |
+|------|--------|
+| "aa" | 2 |
+| "bb" | 2 |
+| "a"  | 1 |
+
+Curly braces \`{ }\` **without** \`key: value\` mean a **set** — duplicates removed. So two length-2 words become one \`2\` in the set.
+
+### Why \`{1, 2}\` and not \`{2, 1}\`?
+
+**They are the same set.** Sets are **unordered**. Python may print either order; equality ignores order:
+
+\`\`\`python
+{1, 2} == {2, 1}   # True
+\`\`\`
+
+| Type | Order matters? | Example |
+|------|----------------|---------|
+| **list** \`[...]\` | Yes | \`[1,2] != [2,1]\` |
+| **set** \`{...}\` | No | \`{1,2} == {2,1}\` |
+| **dict** | Keys unique; insertion order kept (3.7+) | |
+
+If you used a **list** comprehension \`[len(w) for w in ...]\` you would get \`[2, 2, 1]\` — duplicates kept, order preserved.`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'comprehensions.py',
+        code: `# List comprehension — [ ] keeps order and duplicates
+squares = [x * x for x in range(5)]           # [0, 1, 4, 9, 16]
+evens = [x for x in range(10) if x % 2 == 0]  # filter with if at end
+
+# Dict comprehension — { key_expr: value_expr for ... }
+square_map = {x: x * x for x in range(4)}     # {0:0, 1:1, 2:4, 3:9}
+
+# Set comprehension — { expr for ... }  (no colon!)
+unique_lengths = {len(w) for w in ["aa", "bb", "a"]}  # {1, 2}
+
+# Nested — readable only when short
+pairs = [(x, y) for x in range(3) for y in range(2)]
+# (0,0), (0,1), (1,0), (1,1), (2,0), (2,1)`,
       },
       {
         type: 'callout',
         tone: 'clarification',
         title: '`for` … `else` (no `break`)',
         content:
-          'The `else` block on a `for` runs only if the loop finished without `break`. If `break` fired, `else` is skipped. Use it for “search failed” patterns so you do not need a separate flag variable. `while` supports the same `else` semantics.',
-      },
-      {
-        type: 'code',
-        language: 'python',
-        filename: 'comprehensions.py',
-        code: `squares = [x * x for x in range(5)]
-
-# filter
-evens = [x for x in range(10) if x % 2 == 0]
-
-# dict comp
-square_map = {x: x * x for x in range(4)}
-
-# set comp
-unique_lengths = {len(w) for w in ["aa", "bb", "a"]}
-
-# Nest lightly
-pairs = [(x, y) for x in range(3) for y in range(2)]`,
+          'The `else` on a `for` runs only if the loop finished without `break`. Use it for “not found” instead of a separate `found = False` flag.',
       },
       {
         type: 'callout',
         tone: 'tip',
-        title: 'Prefer clarity over one-liners',
+        title: 'When a comprehension is too much',
         content:
-          'If a comprehension needs three `if`s and two loops, use a regular loop. Senior code is obvious, not clever.',
+          'More than two `if` clauses or nested loops? Use a normal `for` loop. Readable beats clever.',
       },
       {
         type: 'exercise',
@@ -634,61 +712,234 @@ def batched(items: list[str], size: int) -> Iterator[list[str]]:
     ],
     content: [
       {
+        type: 'text',
+        markdown: `## Read function signatures like a professional
+
+When you see production Python, decode names and punctuation:
+
+| Piece | Professional name | Meaning |
+|-------|-------------------|---------|
+| \`host: str\` | Type annotation | Expected type (hint for humans/tools) |
+| \`port: int = 5432\` | Default argument | Optional; 5432 if omitted |
+| \`*\` alone in params | **Keyword-only separator** | Everything after must be passed by name |
+| \`ssl: bool = True\` | Keyword-only parameter | Must write \`ssl=True\`, not a bare positional |
+| \`-> str\` | Return annotation | Function returns a string |
+| \`*args\` | Variable **positional** arguments | Extra positionals collected in a **tuple** |
+| \`**kwargs\` | Variable **keyword** arguments | Extra keywords collected in a **dict** |
+| \`def f(*, a, b)\` | All keyword-only | No positional args at all — every param named |
+
+**Abbreviations in real code**
+
+| Abbrev | Stands for | Example |
+|--------|------------|---------|
+| **ssl** | Secure Sockets Layer (TLS encryption) | \`ssl=True\` → encrypted connection |
+| **tcp** | Transmission Control Protocol | \`port\` is usually TCP |
+| **uri** / **url** | Resource locator string | \`postgres://host:5432\` |
+| **db** | database | \`connect_db\` |
+| **cfg** / **config** | configuration | \`load_cfg()\` |
+| **ctx** | context | \`with ctx:\` |
+| **msg** | message | \`log_msg\` |
+| **req** / **resp** | request / response | HTTP handlers |
+| **idx** | index | \`enumerate\` loop |
+| **acc** | accumulator | list building up results |`,
+      },
+      {
+        type: 'text',
+        markdown: `## The bare \`*\` — keyword-only parameters
+
+\`\`\`python
+def connect(host: str, port: int = 5432, *, ssl: bool = True) -> str:
+\`\`\`
+
+| Parameter | Positional OK? | Keyword OK? |
+|-----------|----------------|-------------|
+| \`host\` | Yes | Yes |
+| \`port\` | Yes | Yes |
+| \`ssl\` | **No** | **Yes** (required name) |
+
+**Valid calls:**
+
+\`\`\`python
+connect("localhost")
+connect("localhost", 5432)
+connect("localhost", ssl=False)
+connect(host="localhost", port=5432, ssl=True)
+\`\`\`
+
+**Invalid — TypeError:**
+
+\`\`\`python
+connect("localhost", 5432, True)   # ssl cannot be positional
+\`\`\`
+
+**Why teams use this:** Boolean flags are easy to swap by accident. \`ssl=True\` is self-documenting.
+
+### All parameters keyword-only
+
+Put \`*\` first — nothing positional allowed:
+
+\`\`\`python
+def connect(*, host: str, port: int = 5432, ssl: bool = True) -> str:
+    ...
+\`\`\`
+
+\`\`\`python
+connect(host="localhost")              # OK
+connect("localhost")                   # ERROR
+\`\`\`
+
+Same idea as \`print("hi", end="!", flush=True)\` — \`end\` and \`flush\` are keyword-only in the standard library.`,
+      },
+      {
         type: 'code',
         language: 'python',
-        filename: 'functions.py',
+        filename: 'connect.py',
         code: `def connect(host: str, port: int = 5432, *, ssl: bool = True) -> str:
-    """Connect to database.
-
-    Args:
-        host: hostname
-        port: TCP port
-        ssl: require TLS — keyword-only
-
-    Returns:
-        A connection URI string (illustrative).
-    """
+    """Build an illustrative DB URI (not a real connection)."""
     scheme = "postgres+ssl" if ssl else "postgres"
     return f"{scheme}://{host}:{port}"
 
+print(connect("db.internal", ssl=True))
+# postgres+ssl://db.internal:5432
 
+print(connect(host="localhost", port=5433, ssl=False))
+# postgres://localhost:5433`,
+        explanation: 'The function body is simple; the signature is what you memorize for interviews and code review.',
+      },
+      {
+        type: 'text',
+        markdown: `## \`*args\` and \`**kwargs\` — variadic functions
+
+\`\`\`python
 def flex(*args: int, **kwargs: str) -> None:
     print("positional tuple:", args)
     print("keyword mapping:", kwargs)
+\`\`\`
 
+| Call | \`args\` | \`kwargs\` |
+|------|--------|----------|
+| \`flex()\` | \`()\` | \`{}\` |
+| \`flex(1, 2, 3)\` | \`(1, 2, 3)\` | \`{}\` |
+| \`flex(x="hi")\` | \`()\` | \`{"x": "hi"}\` |
+| \`flex(10, 20, name="Bob", country="CA")\` | \`(10, 20)\` | \`{"name": "Bob", "country": "CA"}\` |
 
-flex(1, 2, x="hi")
+**Rules:** positional arguments first, then keyword arguments. \`*args\` is a **tuple**; \`**kwargs\` is a **dict** (string keys).
 
+**Professional terms:** *variadic function*, *argument tuple*, *keyword dictionary*. Used in decorators and wrappers:
 
-# NEVER mutable default — shared across calls!
-def bad_acc(item, acc=[]):  # noqa: bad example
+\`\`\`python
+def log_call(fn):
+    def wrapper(*args, **kwargs):
+        print("calling", fn.__name__)
+        return fn(*args, **kwargs)
+    return wrapper
+\`\`\``,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'flex_demo.py',
+        code: `def flex(*args: int, **kwargs: str) -> None:
+    print("positional tuple:", args)
+    print("keyword mapping:", kwargs)
+
+flex()
+flex(1, 2, 3)
+flex(x="hi")
+flex(10, 20, name="Bob", country="Canada")`,
+      },
+      {
+        type: 'text',
+        markdown: `## Mutable default trap — \`acc=[]\`
+
+\`\`\`python
+def bad_acc(item, acc=[]):
+    acc.append(item)
+    return acc
+\`\`\`
+
+Defaults are created **once** when Python **defines** the function — not on each call. Every call shares the **same list object**:
+
+\`\`\`python
+bad_acc(1)   # [1]
+bad_acc(2)   # [1, 2]  ← surprise!
+bad_acc(3)   # [1, 2, 3]
+\`\`\`
+
+**Never use mutable defaults:** \`[]\`, \`{}\`, \`set()\`. **Safe defaults:** \`None\`, \`0\`, \`""\`, \`()\`.
+
+### Fix: \`None\` + \`if acc is None:\`
+
+\`\`\`python
+def good_acc(item, acc=None):
+    if acc is None:
+        acc = []      # brand-new list THIS call
+    acc.append(item)
+    return acc
+\`\`\`
+
+**Why the \`if\`?** The default is \`None\`, not a list. You cannot call \`.append()\` on \`None\`. The \`if\` converts \`None\` → fresh \`[]\` before using it.
+
+| Call | \`acc\` at start | Branch |
+|------|------------------|--------|
+| \`good_acc(1)\` | \`None\` | creates \`[]\`, returns \`[1]\` |
+| \`good_acc(2)\` | \`None\` again | new \`[]\`, returns \`[2]\` |
+| \`good_acc(3, [10])\` | \`[10]\` | skips \`if\`, returns \`[10, 3]\` |
+
+Linters flag \`def f(x=[])\` as **mutable default argument** (e.g. flake8 B006).`,
+      },
+      {
+        type: 'code',
+        language: 'python',
+        filename: 'mutable_default.py',
+        code: `# BAD — shared list
+def bad_acc(item, acc=[]):
     acc.append(item)
     return acc
 
+print(bad_acc(1))  # [1]
+print(bad_acc(2))  # [1, 2]  shared!
 
-def good_acc(item, acc: list[int] | None = None) -> list[int]:
+# GOOD — fresh list when needed
+def good_acc(item, acc=None):
     if acc is None:
         acc = []
     acc.append(item)
     return acc
 
+print(good_acc(1))  # [1]
+print(good_acc(2))  # [2]`,
+      },
+      {
+        type: 'text',
+        markdown: `## Full parameter order (Python 3.8+)
 
-pow2 = lambda x: x * x  # sparingly
-sorted(users, key=lambda u: u["name"])`,
+\`\`\`python
+def f(a, /, b, c=0, *args, d, **kwargs):
+    ...
+\`\`\`
+
+| Section | Name |
+|---------|------|
+| Before \`/\` | Positional-only |
+| \`b\`, \`c\` | Positional or keyword |
+| \`*args\` | Extra positionals → tuple |
+| \`d\` | Keyword-only (after bare \`*\`) |
+| \`**kwargs\` | Extra keywords → dict |
+
+Most application code only needs: normal params, \`*, flag=True\`, and occasionally \`*args\`/\`**kwargs\`.`,
       },
       {
-        type: 'callout',
-        tone: 'clarification',
-        title: 'Parameter order (positional → keyword-only)',
-        content:
-          'Python 3.8+: you can write `def f(a, /, b, c=0, *args, d, **kwargs)` — everything before `/` is positional-only; `*` forces keyword-only names after it (here `d` must be passed by name). Most APIs use `*,` alone to make flags explicit: `def run(*, dry_run: bool = False)`.',
-      },
-      {
-        type: 'callout',
-        tone: 'warning',
-        title: 'Mutable defaults',
-        content:
-          'Default parameter values are evaluated once at function definition time. Using `[]` or `{}` as default is a classic bug.',
+        type: 'code',
+        language: 'python',
+        filename: 'lambda_examples.py',
+        code: `# lambda — tiny one-expression functions only
+pow2 = lambda x: x * x
+print(pow2(4))  # 16
+
+users = [{"name": "Zoe"}, {"name": "Ada"}]
+sorted(users, key=lambda u: u["name"])  # by name`,
+        explanation: 'Prefer a real `def` if the function needs more than one line or a docstring.',
       },
       {
         type: 'exercise',
