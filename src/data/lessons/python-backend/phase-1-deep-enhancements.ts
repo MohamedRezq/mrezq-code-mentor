@@ -296,6 +296,29 @@ bool(-1)        # → True   (non-zero number)
 
   // ── Lesson 4: Control Flow ───────────────────────────────────────────────
   'py-control-flow': [
+    `## Start here: what is control flow? (zero knowledge)
+
+By default Python runs code top to bottom, one line at a time. **Control flow** lets you skip lines, repeat lines, or choose between different paths.
+
+\`\`\`python
+# Without control flow — runs every line regardless:
+print("You are logged in")    # ← what if they're NOT logged in?
+print("Welcome back!")
+
+# With control flow — only runs if logged_in is True:
+logged_in = True
+if logged_in:
+    print("You are logged in")   # → runs
+    print("Welcome back!")       # → runs
+
+logged_in = False
+if logged_in:
+    print("You are logged in")   # → skipped (condition is False)
+    print("Welcome back!")       # → skipped
+\`\`\`
+
+**Indentation is everything in Python.** Lines inside an \`if\` block MUST be indented (4 spaces). The indent is how Python knows which lines belong to the block.`,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -371,6 +394,42 @@ match point:
 
   // ── Lesson 5: Loops & Iterations ────────────────────────────────────────
   'py-loops-iterations': [
+    `## Start here: what is a loop? (zero knowledge)
+
+A loop runs the same block of code multiple times — once for each item in a collection, or until a condition becomes False.
+
+\`\`\`python
+# Without a loop — you write 5 separate lines:
+print("Student 1 passed")
+print("Student 2 passed")
+print("Student 3 passed")
+# ... imagine 100 students
+
+# With a for loop — write once, run 100 times:
+students = ["Alice", "Bob", "Carol", "David"]
+for student in students:
+    print(f"{student} passed")
+# → Alice passed
+# → Bob passed
+# → Carol passed
+# → David passed
+
+# "for X in collection:" means:
+# "For each item in the collection, call it X and run the indented block"
+\`\`\`
+
+**while loop** — repeat until something changes:
+\`\`\`python
+count = 0
+while count < 3:
+    print(f"Count is {count}")
+    count += 1   # IMPORTANT: you must change the condition variable
+                 # or the loop runs forever
+# → Count is 0
+# → Count is 1
+# → Count is 2
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -472,6 +531,54 @@ sum(x**2 for x in range(10_000_000))   # → no 10M list in memory
 
   // ── Lesson 6: Functions Deep ─────────────────────────────────────────────
   'py-functions-deep': [
+    `## Start here: what is a function? (zero knowledge)
+
+A function is a **named block of code** you can run multiple times by calling its name.
+
+\`\`\`python
+# Define (write the recipe once)
+def greet(name):
+    print(f"Hello, {name}!")
+
+# Call (use the recipe many times)
+greet("Alice")   # → Hello, Alice!
+greet("Bob")     # → Hello, Bob!
+greet("Carol")   # → Hello, Carol!
+\`\`\`
+
+Without functions, you would copy-paste \`print(f"Hello, ...")\` three times. Functions eliminate duplication.
+
+**Return value** — a function can give back a result:
+\`\`\`python
+def add(a, b):
+    return a + b          # sends value back to the caller
+
+result = add(3, 4)        # result = 7
+print(result + 1)         # → 8
+
+# A function without return → returns None
+def do_nothing():
+    pass
+
+print(do_nothing())       # → None
+\`\`\``,
+
+    `## Parameters vs Arguments — clear explanation
+
+**Parameter** = the variable name in the function definition (the slot).
+**Argument** = the actual value you pass when calling (what goes into the slot).
+
+\`\`\`python
+def describe(name, age):   # ← name, age are PARAMETERS (slots)
+    print(f"{name} is {age} years old")
+
+describe("Alice", 30)      # ← "Alice", 30 are ARGUMENTS (values)
+# → Alice is 30 years old
+
+# Keyword arguments — pass by name, order doesn't matter
+describe(age=30, name="Alice")   # same result
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -580,6 +687,42 @@ slow_add(1, 2)
 
   // ── Lesson 7: Modules & Stdlib ───────────────────────────────────────────
   'py-modules-stdlib': [
+    `## Start here: what is a module? (zero knowledge)
+
+A module is simply a \`.py\` file. When you \`import\` it, Python runs that file and makes all its names available to you.
+
+\`\`\`python
+# math.py is a file in Python's standard library
+import math
+
+print(math.pi)          # → 3.141592653589793
+print(math.sqrt(16))    # → 4.0
+print(math.ceil(4.1))   # → 5   (round up)
+print(math.floor(4.9))  # → 4   (round down)
+
+# Import specific names (so you don't need to type "math." each time)
+from math import sqrt, pi
+print(sqrt(25))    # → 5.0
+print(pi)          # → 3.141592653589793
+
+# Import with alias (shorter name)
+import collections as col
+col.Counter("hello")   # → Counter({'l': 2, 'h': 1, 'e': 1, 'o': 1})
+\`\`\`
+
+**Standard Library (stdlib)** = modules that ship with Python. No installation needed. Examples: \`os\`, \`sys\`, \`json\`, \`math\`, \`datetime\`, \`pathlib\`, \`re\`, \`collections\`.
+
+\`\`\`python
+# Your own module: any .py file you write
+# utils.py:
+def add(a, b):
+    return a + b
+
+# main.py:
+from utils import add    # import from your own file
+print(add(2, 3))         # → 5
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -672,6 +815,48 @@ hashlib.sha256(b"hello").hexdigest()   # → 64-char hex string
 
   // ── Lesson 8: Collections Pro ────────────────────────────────────────────
   'py-collections-pro': [
+    `## Start here: why go beyond list and dict?
+
+Python's built-in list and dict work for most cases. The \`collections\` module gives you specialized versions that solve specific problems much more cleanly.
+
+\`\`\`python
+# Problem 1: I want to group items by key, but I don't know all keys in advance
+# ❌ Without defaultdict — clunky KeyError risk:
+groups = {}
+for word in ["apple", "ant", "banana", "bear"]:
+    first = word[0]
+    if first not in groups:
+        groups[first] = []         # must check every time
+    groups[first].append(word)
+
+# ✅ With defaultdict — clean:
+from collections import defaultdict
+groups = defaultdict(list)
+for word in ["apple", "ant", "banana", "bear"]:
+    groups[word[0]].append(word)   # no KeyError ever
+print(dict(groups))
+# → {"a": ["apple", "ant"], "b": ["banana", "bear"]}
+
+# Problem 2: I need to count things
+# ❌ Without Counter — tedious:
+counts = {}
+for item in ["a", "b", "a", "c", "a", "b"]:
+    counts[item] = counts.get(item, 0) + 1
+
+# ✅ With Counter — one line:
+from collections import Counter
+counts = Counter(["a", "b", "a", "c", "a", "b"])
+print(counts)   # → Counter({'a': 3, 'b': 2, 'c': 1})
+
+# Problem 3: I need a queue (add to right, remove from left) efficiently
+# ❌ list.pop(0) is O(n) — slow for large lists
+# ✅ deque.popleft() is O(1) — always fast
+from collections import deque
+queue = deque(["first", "second", "third"])
+queue.append("fourth")         # add to right
+print(queue.popleft())         # → "first"  (remove from left, O(1))
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -759,6 +944,43 @@ config["size"]   # → "M"     (falls through to defaults)
 
   // ── Lesson 9: Exceptions & Files ────────────────────────────────────────
   'py-exceptions-files': [
+    `## Start here: what is an exception? (zero knowledge)
+
+An exception is Python's way of saying "something went wrong — I can't continue." When Python raises an exception, it stops the current code and looks for a handler. If there's no handler, your program crashes with a traceback.
+
+\`\`\`python
+# No exception handling — program crashes:
+number = int("abc")
+# Traceback (most recent call last):
+#   File "script.py", line 1, in <module>
+#     number = int("abc")
+# ValueError: invalid literal for int() with base 10: 'abc'
+
+# With exception handling — program continues:
+try:
+    number = int("abc")   # ← might fail
+except ValueError:
+    number = 0             # ← use this default instead
+    print("That wasn't a number — using 0")
+print(f"Number is: {number}")
+# → That wasn't a number — using 0
+# → Number is: 0
+\`\`\`
+
+**Read \`try/except\` as:** "Try this. If it fails with this specific error, do this instead."
+
+\`\`\`python
+# The 4 parts of exception handling:
+try:
+    result = risky_operation()    # code that might fail
+except ValueError as e:          # catch specific error, call it "e"
+    print(f"Value error: {e}")    # handle it
+else:
+    print("Success!")             # runs ONLY if no exception
+finally:
+    print("Always runs")          # runs NO MATTER WHAT (cleanup)
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -1008,6 +1230,64 @@ json.dumps({"ts": datetime.now()}, cls=AppEncoder)
 
   // ── Lesson 11: Regex ─────────────────────────────────────────────────────
   'py-regex': [
+    `## Start here: what is regex and why does it look scary? (zero knowledge)
+
+Regex (Regular Expression) is a mini-language for describing text patterns. It looks scary at first because it uses symbols instead of words. Once you know what each symbol means, it becomes readable.
+
+\`\`\`python
+import re
+
+# Plain string search (no regex needed):
+"hello world".find("world")   # → 6
+
+# But what if you need to find ANY phone number in text?
+# Phone numbers look like: 555-1234, 555-9999, 123-4567
+# The pattern is: [3 digits] - [4 digits]
+
+text = "Call us at 555-1234 or 800-9876 for help"
+matches = re.findall(r"\\d{3}-\\d{4}", text)
+print(matches)   # → ["555-1234", "800-9876"]
+
+# r"\\d{3}-\\d{4}" means:
+#   \\d     = any digit (0-9)
+#   {3}    = exactly 3 of the previous character
+#   -      = literal hyphen
+#   \\d{4}  = exactly 4 digits
+\`\`\`
+
+**The key insight:** Regex is a search tool. You describe the SHAPE of what you're looking for, not the exact text.`,
+
+    `## Build a regex pattern piece by piece (with each step explained)
+
+\`\`\`python
+import re
+
+# Let's build a pattern to match an email address step by step:
+# Example: user.name@company.co.uk
+
+# Step 1: match letters, digits, dots, and underscores before @
+r"[\\w.]+"
+# \\w  = word character = letter, digit, or underscore
+# .   = literal dot (inside [] it's literal, outside it means "any char")
+# +   = one or more of the previous
+
+# Step 2: the @ sign
+r"[\\w.]+@"
+
+# Step 3: domain name (letters and dots)
+r"[\\w.]+@[\\w.]+"
+
+# Step 4: require a final .com/.org/.co.uk (2+ letters)
+r"[\\w.]+@[\\w]+\\.[a-zA-Z]{2,}"
+
+# Test it:
+EMAIL = re.compile(r"[\\w.]+@[\\w]+\\.[a-zA-Z]{2,}")
+print(EMAIL.match("user@example.com"))   # → Match object
+print(EMAIL.match("not-an-email"))       # → None
+print(EMAIL.findall("reach me@a@b.com or info@co.uk"))
+# → ["me@a.com", "info@co.uk"]    ← well, approximately
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
@@ -1103,144 +1383,354 @@ re.search(r".", "a\\nb", re.DOTALL)                 # . matches newline too
 
   // ── Lesson 12: OOP & SOLID ───────────────────────────────────────────────
   'py-oop-solid': [
+    `## Start here: what IS a class? (zero knowledge required)
+
+**Analogy:** A class is a blueprint. A house blueprint is not a house — it's the plan. You use the blueprint to build many houses. Each house built from it is an *instance*.
+
+\`\`\`python
+# The blueprint (class)
+class Dog:
+    pass
+
+# Creating instances (actual objects) from the blueprint
+dog1 = Dog()   # one dog
+dog2 = Dog()   # another dog
+
+print(type(dog1))    # → <class '__main__.Dog'>
+print(dog1 is dog2)  # → False (two different objects)
+\`\`\`
+
+Each instance is its own independent object — changing one does not affect the other.`,
+
+    `## What is \`__init__\`? What is \`self\`? (most confusing part — explained step by step)
+
+**\`__init__\`** is the *constructor* — Python calls it automatically right after creating the object. It sets up the object's initial data.
+
+**\`self\`** is the object itself being constructed. Python passes it automatically — you never pass it when calling. You use it to *attach data to the specific instance*.
+
+\`\`\`python
+class Dog:
+    def __init__(self, name: str, breed: str):
+        #            ↑                         ↑
+        # Python passes self;        you pass name and breed
+        self.name  = name    # attach name to THIS dog
+        self.breed = breed   # attach breed to THIS dog
+
+# Creating an instance:
+rex = Dog("Rex", "Labrador")
+#               ↑        ↑
+#         name="Rex"  breed="Labrador"
+# Python automatically passes self=rex behind the scenes
+
+print(rex.name)    # → Rex
+print(rex.breed)   # → Labrador
+
+buddy = Dog("Buddy", "Poodle")
+print(buddy.name)  # → Buddy  (independent from rex)
+print(rex.name)    # → Rex    (unchanged)
+\`\`\`
+
+**Read \`self.name = name\` as:** "On THIS specific dog, store the name value."`,
+
+    `## Instance methods: functions that belong to the object
+
+\`\`\`python
+class Dog:
+    def __init__(self, name: str, age: int):
+        self.name  = name
+        self.age   = age
+        self._tricks: list[str] = []   # private by convention (leading _)
+
+    def bark(self) -> str:
+        return f"{self.name} says: Woof!"
+
+    def learn_trick(self, trick: str) -> None:
+        self._tricks.append(trick)
+        print(f"{self.name} learned '{trick}'!")
+
+    def show_tricks(self) -> None:
+        if self._tricks:
+            print(f"{self.name} knows: {', '.join(self._tricks)}")
+        else:
+            print(f"{self.name} knows no tricks yet.")
+
+# Create and use
+rex = Dog("Rex", 3)
+print(rex.bark())           # → Rex says: Woof!
+rex.learn_trick("sit")      # → Rex learned 'sit'!
+rex.learn_trick("shake")    # → Rex learned 'shake'!
+rex.show_tricks()           # → Rex knows: sit, shake
+
+# self is the object on the LEFT of the dot:
+# rex.bark()  →  Python calls Dog.bark(rex)
+# That's all self is — the object you called the method on.
+\`\`\``,
+
+    `## Special (dunder) methods — make your class work like a built-in
+
+Dunder = **D**ouble **Under**score. Python calls these automatically in specific situations.
+
+\`\`\`python
+class BankAccount:
+    def __init__(self, owner: str, balance: float = 0.0):
+        self.owner    = owner
+        self._balance = balance   # _ means "don't touch directly"
+
+    # ── str(account) and print(account) ──────────────────────
+    def __str__(self) -> str:
+        return f"Account of {self.owner}"   # user-friendly
+
+    # ── repr(account) — shown in debugger and REPL ────────────
+    def __repr__(self) -> str:
+        return f"BankAccount(owner={self.owner!r}, balance={self._balance:.2f})"
+
+    # ── len(account) ──────────────────────────────────────────
+    def __len__(self) -> int:
+        return int(self._balance)
+
+    # ── account == other_account ──────────────────────────────
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BankAccount): return NotImplemented
+        return self.owner == other.owner
+
+    # ── account + other_account ───────────────────────────────
+    def __add__(self, other: "BankAccount") -> "BankAccount":
+        return BankAccount(f"{self.owner}+{other.owner}", self._balance + other._balance)
+
+    # ── bool(account) ─────────────────────────────────────────
+    def __bool__(self) -> bool:
+        return self._balance > 0   # True only if positive balance
+
+acc1 = BankAccount("Alice", 100.50)
+acc2 = BankAccount("Bob",   200.00)
+
+print(str(acc1))      # → Account of Alice
+print(repr(acc1))     # → BankAccount(owner='Alice', balance=100.50)
+print(len(acc1))      # → 100
+print(acc1 == BankAccount("Alice", 50))  # → True  (same owner)
+combined = acc1 + acc2
+print(repr(combined)) # → BankAccount(owner='Alice+Bob', balance=300.50)
+print(bool(acc1))     # → True
+print(bool(BankAccount("Empty", 0)))     # → False
+\`\`\`
+
+**Rule of thumb:** Always implement \`__repr__\` first. Implement \`__str__\` only if you want a different user-facing display.`,
+
+    `## Properties: computed attributes and validation
+
+\`\`\`python
+class Temperature:
+    def __init__(self, celsius: float):
+        self._celsius = celsius   # store internally
+
+    # @property makes a method callable like an attribute (no parentheses)
+    @property
+    def celsius(self) -> float:
+        return self._celsius
+
+    @property
+    def fahrenheit(self) -> float:
+        return self._celsius * 9/5 + 32
+
+    # @x.setter runs when you do: obj.celsius = value
+    @celsius.setter
+    def celsius(self, value: float) -> None:
+        if value < -273.15:
+            raise ValueError(f"Temperature {value}°C is below absolute zero")
+        self._celsius = value
+
+t = Temperature(100)
+print(t.celsius)      # → 100    (called like attribute, no parentheses)
+print(t.fahrenheit)   # → 212.0  (computed on demand)
+
+t.celsius = 0
+print(t.fahrenheit)   # → 32.0
+
+t.celsius = -300      # → ValueError: Temperature -300°C is below absolute zero
+\`\`\``,
+
+    `## Class methods and static methods
+
+\`\`\`python
+class Date:
+    def __init__(self, year: int, month: int, day: int):
+        self.year  = year
+        self.month = month
+        self.day   = day
+
+    # ── @classmethod: factory / alternative constructor ───────
+    # Receives the class (cls), not an instance (self)
+    @classmethod
+    def from_string(cls, date_string: str) -> "Date":
+        year, month, day = map(int, date_string.split("-"))
+        return cls(year, month, day)   # cls is Date — creates a Date
+
+    @classmethod
+    def today(cls) -> "Date":
+        import datetime
+        d = datetime.date.today()
+        return cls(d.year, d.month, d.day)
+
+    # ── @staticmethod: utility that doesn't need class or instance ──
+    @staticmethod
+    def is_valid(year: int, month: int, day: int) -> bool:
+        return 1 <= month <= 12 and 1 <= day <= 31
+
+    def __repr__(self):
+        return f"Date({self.year}, {self.month}, {self.day})"
+
+# classmethod — called on the class, not an instance
+d1 = Date.from_string("2025-01-15")
+print(d1)               # → Date(2025, 1, 15)
+
+d2 = Date.today()
+print(d2)               # → Date(2025, ...)
+
+# staticmethod — utility, no self or cls needed
+print(Date.is_valid(2025, 1, 15))    # → True
+print(Date.is_valid(2025, 13, 1))    # → False (month 13 doesn't exist)
+\`\`\``,
+
+    `## Inheritance: build on top of existing classes
+
+\`\`\`python
+class Animal:
+    def __init__(self, name: str, age: int):
+        self.name = name
+        self.age  = age
+
+    def speak(self) -> str:
+        return "..."
+
+    def describe(self) -> str:
+        return f"{self.name} is {self.age} years old"
+
+    def __repr__(self):
+        return f"{type(self).__name__}(name={self.name!r})"
+
+class Dog(Animal):           # Dog inherits from Animal
+    def speak(self) -> str:  # override the parent method
+        return f"{self.name} says: Woof!"
+
+class Cat(Animal):
+    def speak(self) -> str:
+        return f"{self.name} says: Meow!"
+
+class GuideDog(Dog):         # inherits from Dog which inherits from Animal
+    def __init__(self, name: str, age: int, owner: str):
+        super().__init__(name, age)   # ← always call super().__init__() first
+        self.owner = owner
+
+    def describe(self) -> str:
+        return f"{super().describe()} — guides {self.owner}"
+
+# Usage
+animals = [Dog("Rex", 3), Cat("Whiskers", 5), GuideDog("Guide", 4, "Alice")]
+
+for a in animals:
+    print(a.speak())          # Each class has its own speak (polymorphism)
+# → Rex says: Woof!
+# → Whiskers says: Meow!
+# → Guide says: Woof!
+
+print(animals[2].describe())  # → Guide is 4 years old — guides Alice
+
+# isinstance checks
+print(isinstance(animals[2], GuideDog))  # → True
+print(isinstance(animals[2], Dog))       # → True  (GuideDog IS a Dog)
+print(isinstance(animals[2], Animal))    # → True  (GuideDog IS an Animal)
+print(isinstance(animals[2], Cat))       # → False
+\`\`\`
+
+**\`super()\`** — calls the parent class version of the method. Without it, you must duplicate the parent's code.`,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
 |---|---|---|
 | Class | klas | Blueprint for objects |
 | Instance | IN-stunce | A specific object created from a class |
-| Attribute | AT-rib-yoot | Data stored on an object |
+| Attribute | AT-rib-yoot | Data stored on an object (\`self.name\`) |
 | Method | METH-ud | Function defined inside a class |
 | \`__init__\` | dunder-init | Constructor — runs when object is created |
-| \`__repr__\` | dunder-REPR | String for developers: \`repr(obj)\` |
-| \`__str__\` | dunder-STR | String for users: \`str(obj)\` and \`print(obj)\` |
-| Inheritance | in-HAIR-it-unce | Class inherits attributes/methods from parent |
-| Polymorphism | pol-ee-MOR-fizm | Different classes respond to the same method name |
-| Encapsulation | en-KAP-syoo-LAY-shun | Hiding internal state; exposing only what's needed |
-| Abstract class | AB-strakt | Class that can't be instantiated — defines interface |
-| Dunder method | DUN-der | Double underscore method (\`__init__\`, \`__len__\`) |
-| \`@property\` | — | Decorator to make a method look like an attribute |
-| \`@classmethod\` | — | Method that receives the class as first argument |
-| \`@staticmethod\` | — | Method that doesn't receive class or instance |`,
-
-    `## Full reference: class features with outputs
-
-\`\`\`python
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-
-# ── Full class anatomy ────────────────────────────────────────
-class Course:
-    # Class variable — shared by all instances
-    platform = "SeniorPath"
-
-    def __init__(self, title: str, price: float):
-        self.title  = title      # instance variable
-        self.price  = price
-        self._views = 0          # convention: "private" (not enforced)
-
-    # Instance method
-    def discount(self, pct: float) -> float:
-        return self.price * (1 - pct)
-
-    # Property — accessed like an attribute
-    @property
-    def is_free(self) -> bool:
-        return self.price == 0
-
-    @property
-    def views(self) -> int:
-        return self._views
-
-    @views.setter
-    def views(self, value: int):
-        if value < 0:
-            raise ValueError("views cannot be negative")
-        self._views = value
-
-    # Class method — receives class, not instance
-    @classmethod
-    def free(cls, title: str) -> "Course":
-        return cls(title, price=0)
-
-    # Static method — no class or instance
-    @staticmethod
-    def is_valid_price(price: float) -> bool:
-        return isinstance(price, (int, float)) and price >= 0
-
-    # Dunder methods
-    def __repr__(self):
-        return f"Course(title={self.title!r}, price={self.price})"
-
-    def __str__(self):
-        return f"{self.title} ({'Free' if self.is_free else f'\${self.price}'})"
-
-    def __len__(self):
-        return len(self.title)
-
-    def __eq__(self, other):
-        if not isinstance(other, Course): return NotImplemented
-        return self.title == other.title and self.price == other.price
-
-# Usage
-c = Course("Python Basics", 49.99)
-print(c.is_free)        # → False
-print(c.views)          # → 0
-c.views = 100           # setter validates
-print(repr(c))          # → Course(title='Python Basics', price=49.99)
-print(str(c))           # → Python Basics (\$49.99)
-print(len(c))           # → 12
-free = Course.free("Intro")  # → Course(title='Intro', price=0)
-
-# ── Inheritance ───────────────────────────────────────────────
-class PremiumCourse(Course):
-    def __init__(self, title, price, mentor):
-        super().__init__(title, price)
-        self.mentor = mentor
-
-    def __str__(self):
-        return f"[PREMIUM] {super().__str__()} with {self.mentor}"
-
-p = PremiumCourse("Django", 99, "Alice")
-isinstance(p, Course)          # → True
-isinstance(p, PremiumCourse)   # → True
-
-# ── Abstract class ────────────────────────────────────────────
-class Notifier(ABC):
-    @abstractmethod
-    def send(self, message: str) -> bool: ...
-
-class EmailNotifier(Notifier):
-    def send(self, message: str) -> bool:
-        print(f"Email: {message}")
-        return True
-
-# ── Dataclass ─────────────────────────────────────────────────
-@dataclass
-class Point:
-    x: float
-    y: float
-    label: str = ""
-    tags: list = field(default_factory=list)  # mutable default
-
-p = Point(1.0, 2.0)
-print(p)       # → Point(x=1.0, y=2.0, label='', tags=[])
-p == Point(1.0, 2.0)   # → True (auto-generated __eq__)
-\`\`\``,
+| \`__repr__\` | dunder-REPR | String for developers (debug/REPL) |
+| \`__str__\` | dunder-STR | String for users (\`print(obj)\`) |
+| Dunder | DUN-der | Double underscore: \`__init__\`, \`__repr__\` etc. |
+| Inheritance | in-HAIR-it-unce | Subclass reuses code from parent class |
+| \`super()\` | SOO-per | Calls the parent class's version of a method |
+| Polymorphism | pol-ee-MOR-fizm | Same method name, different behaviour per class |
+| Encapsulation | en-KAP-syoo-LAY-shun | Hiding internal data behind controlled access |
+| \`@property\` | — | Decorator to access a method without parentheses |
+| \`@classmethod\` | — | Method that receives the class, not an instance |
+| \`@staticmethod\` | — | Utility function attached to a class, no self/cls |
+| Abstract class | AB-strakt | Class that defines interface but can't be used directly |
+| Dataclass | DATA-klas | Decorator that auto-generates \`__init__\`, \`__repr__\` |
+| Protocol | PRO-to-kol | Structural interface — "anything with these methods" |`,
 
     `## Junior mistakes + fix
 
 | Mistake | What happens | Fix |
 |---|---|---|
-| Mutable class variable | All instances share the same list — mutations affect all | Declare mutable defaults in \`__init__\` as instance variables |
-| \`__str__\` returns non-string | TypeError | Always return \`str\` from \`__str__\` |
-| Forget \`super().__init__()\` in subclass | Parent initialisation skipped | Always call \`super().__init__(...)\` first |
-| Override method but break signature | Violates Liskov substitution | Overriding methods must accept same arguments |
-| Instantiate abstract class | TypeError | Implement all \`@abstractmethod\` in subclass |`,
+| Forget \`self\` in method definition | \`TypeError: takes 0 positional arguments but 1 was given\` | Every instance method must have \`self\` as first param |
+| Call method with \`self\` explicitly: \`obj.method(obj)\` | Passes \`obj\` twice | Never pass \`self\` — Python does it automatically |
+| Class variable mutable default | All instances share the same list — mutations affect all | Move mutable defaults to \`__init__\`: \`self.items = []\` |
+| Forget \`super().__init__()\` in subclass | Parent's data never set up | Always call \`super().__init__(...)\` first in child |
+| \`__str__\` returns non-string | TypeError | Always return \`str\` from \`__str__\` and \`__repr__\` |`,
   ],
 
   // ── Lesson 13: Advanced Patterns ─────────────────────────────────────────
   'py-patterns-advanced': [
+    `## Start here: why do advanced patterns matter?
+
+This lesson covers the patterns you see in every professional Python codebase. They feel abstract at first — focus on the *problem each one solves*, not the syntax.
+
+\`\`\`
+Context managers → guaranteed cleanup even on exceptions
+Protocols → flexible interfaces without rigid inheritance
+TypeVar → write code that works for any type
+Generators → produce large sequences without memory cost
+\`\`\`
+
+We'll build each pattern from a real problem.`,
+
+    `## Context managers: why you need them
+
+**Problem:** Resources (files, DB connections, locks) must be closed even if an exception occurs.
+
+\`\`\`python
+# ❌ BAD — file stays open if an exception happens
+f = open("data.txt")
+data = f.read()     # ← if THIS raises, f.close() never runs
+f.close()
+
+# ✅ GOOD — with block: always closes, even on exception
+with open("data.txt") as f:
+    data = f.read()
+# f.close() called automatically here, no matter what
+
+# How "with" works:
+# 1. Calls f.__enter__() — sets up the resource
+# 2. Runs your code block
+# 3. Calls f.__exit__() — always runs teardown, even if exception
+
+# Build your own context manager with contextlib (simpler than __enter__/__exit__):
+from contextlib import contextmanager
+import time
+
+@contextmanager
+def timer(label: str):
+    start = time.perf_counter()
+    try:
+        yield          # ← your code block runs HERE
+    finally:           # ← always runs, even on exception
+        elapsed = time.perf_counter() - start
+        print(f"{label}: {elapsed:.4f}s")
+
+with timer("database query"):
+    time.sleep(0.1)    # simulate slow query
+# → database query: 0.1003s
+\`\`\``,
+
     `## Terminology
 
 | Term | Pronunciation | Meaning |
