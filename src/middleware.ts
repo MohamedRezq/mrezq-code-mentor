@@ -1,16 +1,15 @@
 import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { handleAuthMiddleware } from "@/lib/auth/middleware";
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  return handleAuthMiddleware(request);
 }
 
 export const config = {
   matcher: [
     /*
      * Only run auth middleware on routes that need session checks.
-     * /learn/* is pre-rendered static content — skip middleware so
-     * Supabase auth lookups cannot block CDN page delivery.
+     * /learn/* is pre-rendered static content — skip middleware entirely.
      */
     "/login",
     "/signup",

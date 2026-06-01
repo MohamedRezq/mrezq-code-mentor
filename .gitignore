@@ -28,6 +28,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# Internal SQLite database (user accounts + progress)
+/data/
+
 # Vercel
 .vercel
 

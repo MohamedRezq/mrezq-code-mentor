@@ -6,7 +6,6 @@ import { CheckCircle2, Loader2, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProgress } from '@/components/progress/progress-provider'
 import { useToast } from '@/lib/hooks/use-toast'
-import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 interface LessonCompleteButtonProps {
   lessonId: string
@@ -57,7 +56,7 @@ export function LessonCompleteButton({ lessonId, moduleId }: LessonCompleteButto
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {!isAuthenticated && isSupabaseConfigured() && (
+      {!isAuthenticated && (
         <p className="text-sm text-muted-foreground text-center max-w-md">
           <Link href={loginHref} className="text-primary font-semibold hover:underline">
             Sign in

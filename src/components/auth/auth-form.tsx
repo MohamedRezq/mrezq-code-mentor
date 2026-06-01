@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +14,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface AuthFormProps {
   mode: "login" | "signup";
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/learn";
 
@@ -31,9 +29,6 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
-
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,66 +36,36 @@ export function AuthForm({ mode }: AuthFormProps) {
     setError(null);
 
     try {
-      if (mode === "signup") {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-          },
-        });
+      const endpoint = mode === "signup" ? "/api/auth/signup" : "/api/auth/login";
+      const body =
+        mode === "signup"
+          ? { email, password, name: name.trim() || undefined }
+          : { email, password };
 
-        if (signUpError) throw signUpError;
-        setConfirmed(true);
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
 
-        if (signInError) throw signInError;
+      const data = (await res.json()) as {
+        error?: string;
+        needsOnboarding?: boolean;
+      };
 
-        // Ensure session is written to cookies before navigation
-        await supabase.auth.getSession();
-
-        // Full navigation so middleware + server components pick up session cookies
-        window.location.assign(redirect);
+      if (!res.ok) {
+        throw new Error(data.error ?? "An error occurred");
       }
+
+      const destination = data.needsOnboarding ? "/onboarding" : redirect;
+      window.location.assign(destination);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "An error occurred";
-      if (msg.toLowerCase().includes("email not confirmed")) {
-        setError(
-          "Please confirm your email first (check inbox/spam), or disable email confirmation in Supabase Auth settings for local dev."
-        );
-      } else {
-        setError(msg);
-      }
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
-
-  if (confirmed) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardContent className="pt-10 pb-10 text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <Mail className="w-7 h-7 text-primary" />
-          </div>
-          <h2 className="text-xl font-bold text-foreground">Check your email</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            We sent a confirmation link to{" "}
-            <span className="font-medium text-foreground">{email}</span>.
-            Click the link to activate your account and start learning.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Didn&apos;t receive it? Check your spam folder.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full max-w-md">
@@ -111,7 +76,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <CardDescription>
           {mode === "login"
             ? "Enter your credentials to sign in"
-            : "Enter your details to get started"}
+            : "Enter your details to get started — no email confirmation needed"}
         </CardDescription>
       </CardHeader>
 

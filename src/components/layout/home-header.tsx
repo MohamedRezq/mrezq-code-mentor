@@ -5,7 +5,6 @@ import { ArrowRight, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/components/providers/auth-provider'
-import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { UserNav } from '@/components/layout/user-nav'
 
 export function HomeHeader() {
@@ -49,7 +48,7 @@ export function HomeHeader() {
             </button>
           )}
 
-          {isSupabaseConfigured() && loading ? (
+          {loading ? (
             <span className="text-xs text-muted-foreground hidden sm:inline" aria-live="polite">
               …
             </span>

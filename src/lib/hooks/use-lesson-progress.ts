@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/components/providers/auth-provider'
-import { isSupabaseConfigured } from '@/lib/supabase/config'
 import {
   addLocalCompletion,
   readLocalCompletions,
@@ -35,7 +34,7 @@ export function useLessonProgress(): LessonProgressState {
     const localIds = readLocalCompletions()
 
     try {
-      if (!isSupabaseConfigured() || !isAuthenticated) {
+      if (!isAuthenticated) {
         setCompletedIds(new Set(localIds))
         return
       }
@@ -71,14 +70,6 @@ export function useLessonProgress(): LessonProgressState {
       addLocalCompletion(lessonId)
       setCompletedIds((prev) => new Set([...prev, lessonId]))
 
-      if (!isSupabaseConfigured()) {
-        return {
-          ok: true,
-          synced: false,
-          message: 'Saved on this device. Configure Supabase to sync across devices.',
-        }
-      }
-
       if (!isAuthenticated) {
         return {
           ok: true,
@@ -106,12 +97,12 @@ export function useLessonProgress(): LessonProgressState {
 
       return { ok: true, synced: true, message: 'Lesson marked complete!' }
     },
-    [isAuthenticated]
+    [isAuthenticated],
   )
 
   const isLessonComplete = useCallback(
     (lessonId: string) => completedIds.has(lessonId),
-    [completedIds]
+    [completedIds],
   )
 
   const moduleProgress = useCallback(
@@ -121,7 +112,7 @@ export function useLessonProgress(): LessonProgressState {
       const percent = total === 0 ? 0 : Math.round((completed / total) * 100)
       return { completed, total, percent }
     },
-    [completedIds]
+    [completedIds],
   )
 
   return useMemo(
@@ -143,6 +134,6 @@ export function useLessonProgress(): LessonProgressState {
       markLessonComplete,
       refresh,
       moduleProgress,
-    ]
+    ],
   )
 }

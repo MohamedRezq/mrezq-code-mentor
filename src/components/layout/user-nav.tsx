@@ -13,21 +13,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { LogOut, Settings, User } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 
 export function UserNav() {
   const router = useRouter()
   const { user } = useAuth()
-  const supabase = createClient()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     router.push('/')
     router.refresh()
   }
 
-  const name = (user?.user_metadata?.name as string | undefined) ?? null
+  const name = user?.name ?? null
   const initials = name
     ? name
         .split(' ')
@@ -41,7 +39,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={(user?.user_metadata?.avatar_url as string) || undefined} alt={name || 'User'} />
+            <AvatarImage src={undefined} alt={name || 'User'} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>

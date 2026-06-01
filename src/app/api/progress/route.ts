@@ -1,27 +1,25 @@
+import { randomUUID } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getSessionFromCookies } from '@/lib/auth/session'
+import { listCompletions, upsertCompletion } from '@/lib/db'
+
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = (await createClient()) as any
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const session = await getSessionFromCookies()
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: completions, error } = await supabase
-      .from('lesson_completions')
-      .select('id, lesson_id, completed_at, time_spent_seconds')
-      .eq('user_id', user.id)
-      .order('completed_at', { ascending: false })
+    const completions = listCompletions(session.sub).map((row) => ({
+      id: row.id,
+      lesson_id: row.lesson_id,
+      completed_at: row.completed_at,
+      time_spent_seconds: row.time_spent_seconds,
+    }))
 
-    if (error) throw error
-
-    return NextResponse.json({ completions: completions ?? [] })
+    return NextResponse.json({ completions })
   } catch (error) {
     console.error('Error fetching progress:', error)
     return NextResponse.json({ error: 'Failed to fetch progress' }, { status: 500 })
@@ -30,13 +28,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = (await createClient()) as any
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const session = await getSessionFromCookies()
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -46,34 +39,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing lessonId' }, { status: 400 })
     }
 
-    const { error: completionError } = await supabase.from('lesson_completions').upsert(
-      {
-        user_id: user.id,
-        lesson_id: lessonId,
-        completed_at: new Date().toISOString(),
-        time_spent_seconds: typeof timeSpentSeconds === 'number' ? timeSpentSeconds : null,
-      },
-      { onConflict: 'user_id,lesson_id' }
-    )
-
-    if (completionError) throw completionError
+    upsertCompletion({
+      id: randomUUID(),
+      userId: session.sub,
+      lessonId,
+      timeSpentSeconds: typeof timeSpentSeconds === 'number' ? timeSpentSeconds : null,
+    })
 
     return NextResponse.json({ success: true, lessonId })
   } catch (error) {
     console.error('Error recording progress:', error)
-    const detail = error instanceof Error ? error.message : 'Unknown error'
-    const needsTable =
-      detail.includes('lesson_completions') ||
-      detail.includes('does not exist') ||
-      detail.includes('schema cache')
-    return NextResponse.json(
-      {
-        error: needsTable
-          ? 'Progress table missing. Run supabase/lesson_completions.sql in your Supabase SQL editor.'
-          : 'Failed to record progress',
-        detail: process.env.NODE_ENV === 'development' ? detail : undefined,
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to record progress' }, { status: 500 })
   }
 }

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogIn, UserPlus } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
-import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { UserNav } from '@/components/layout/user-nav'
 import { Button } from '@/components/ui/button'
 
@@ -25,9 +24,7 @@ export function LearnHeader() {
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-3">
-          {!isSupabaseConfigured() ? (
-            <span className="text-xs text-destructive font-medium">Auth not configured</span>
-          ) : loading ? (
+          {loading ? (
             <span className="text-xs text-muted-foreground" aria-live="polite">
               Loading…
             </span>
