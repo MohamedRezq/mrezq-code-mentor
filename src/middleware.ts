@@ -8,12 +8,16 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
+     * Only run auth middleware on routes that need session checks.
+     * /learn/* is pre-rendered static content — skip middleware so
+     * Supabase auth lookups cannot block CDN page delivery.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/login",
+    "/signup",
+    "/onboarding",
+    "/onboarding/:path*",
+    "/playground",
+    "/playground/:path*",
+    "/api/:path*",
   ],
 };
