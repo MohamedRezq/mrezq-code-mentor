@@ -5,6 +5,12 @@ import { getModule } from '@/data/modules'
 import { CheatSheetPrintBar } from '@/components/python/cheat-sheet-print-bar'
 import { CheatSheetContent } from '@/components/python/cheat-sheet-content'
 
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return [{ moduleId: 'python-backend' }]
+}
+
 export default async function PythonCheatSheetPage({
   params,
 }: {

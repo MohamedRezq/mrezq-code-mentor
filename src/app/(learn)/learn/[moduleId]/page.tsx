@@ -1,8 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, BookOpen, Clock, ChevronRight } from 'lucide-react'
+import { MODULES } from '@/data/modules'
 import { getModule } from '@/data/modules'
 import { getLessonsByModule } from '@/data/lessons'
+
+// Pre-render every module overview page as static HTML at build time.
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return MODULES.map(m => ({ moduleId: m.id }))
+}
 import { getModuleTotalDuration } from '@/lib/curriculum/module-duration'
 import { ModuleLearningMap } from '@/components/learn/module-learning-map'
 import { ModuleLessonList } from '@/components/learn/module-page-client'

@@ -2,10 +2,22 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChevronRight, Clock, BookOpen } from 'lucide-react'
 import { getModule } from '@/data/modules'
-import { getLessonById, getAdjacentLessons } from '@/data/lessons'
+import { ALL_LESSONS, getLessonById, getAdjacentLessons } from '@/data/lessons'
 import { LessonSidebar } from '@/components/lesson/lesson-sidebar'
 import { ContentRenderer } from '@/components/lesson/content-renderer'
 import { LessonPageFooter } from '@/components/lesson/lesson-page-footer'
+
+// Pre-render every lesson as a static page at build time.
+// No serverless function is invoked at request time — pages are served
+// directly from Vercel's CDN with zero cold-start latency.
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return ALL_LESSONS.map(lesson => ({
+    moduleId: lesson.moduleId,
+    lessonId: lesson.id,
+  }))
+}
 
 const DIFFICULTY_STYLES = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
