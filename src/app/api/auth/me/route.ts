@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSessionFromCookies } from '@/lib/auth/session'
-import { findUserById, getProfile, profileNeedsOnboarding } from '@/lib/db'
+import { findUserById, getProfile } from '@/lib/db'
 
 export const runtime = 'nodejs'
 
@@ -11,22 +11,19 @@ export async function GET() {
       return NextResponse.json({ user: null })
     }
 
+    // JWT is the session source of truth; DB enriches profile when available.
     const user = findUserById(session.sub)
-    if (!user) {
-      return NextResponse.json({ user: null })
-    }
-
-    const profile = getProfile(user.id)
+    const profile = getProfile(session.sub)
 
     return NextResponse.json({
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+        id: session.sub,
+        email: session.email,
+        name: user?.name ?? session.name,
         learning_style: profile?.learning_style ?? null,
         skill_level: profile?.skill_level ?? null,
       },
-      needsOnboarding: profileNeedsOnboarding(user.id),
+      needsOnboarding: !profile?.learning_style || !profile?.skill_level,
     })
   } catch (error) {
     console.error('Auth me error:', error)
