@@ -3,6 +3,7 @@ import { roadmapIntro } from '@/lib/curriculum/reviewer-merge'
 
 export const DEVOPS_REVIEWER: Record<string, LessonEnhancement> = {
   'do-linux-shell': { intro: [roadmapIntro('devops', 'Foundations', 'Linux, shell, logs, processes')] },
+  'do-git-workflow': { intro: [roadmapIntro('devops', 'Foundations', 'Git branching, PRs, merge, rebase, recovery')] },
   'do-docker-basics': { intro: [roadmapIntro('docker', 'Foundations', 'images, containers, Dockerfile')] },
   'do-docker-compose': { intro: [roadmapIntro('docker', 'Foundations', 'Compose, local stacks')] },
   'do-networking': { intro: [roadmapIntro('devops', 'Foundations', 'DNS, TLS, ports, debugging')] },

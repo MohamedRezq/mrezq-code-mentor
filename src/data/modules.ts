@@ -233,7 +233,7 @@ export const MODULES: Module[] = [
     description: 'Docker, Kubernetes, Terraform, AWS, CI/CD pipelines, and full observability for production systems.',
     track: 'Technical',
     duration: '6–8 months',
-    totalLessons: 16,
+    totalLessons: 17,
     comingSoon: false,
     phases: [
       {
@@ -242,7 +242,7 @@ export const MODULES: Module[] = [
         title: 'Foundations',
         duration: '2 months',
         description: 'Linux, Docker, Compose, networking — [roadmap.sh/devops](https://roadmap.sh/devops)',
-        lessonIds: ['do-linux-shell', 'do-docker-basics', 'do-docker-compose', 'do-networking'],
+        lessonIds: ['do-linux-shell', 'do-git-workflow', 'do-docker-basics', 'do-docker-compose', 'do-networking'],
       },
       {
         id: 'do-aws',

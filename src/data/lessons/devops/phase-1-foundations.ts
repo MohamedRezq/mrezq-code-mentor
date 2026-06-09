@@ -1,4 +1,5 @@
 import type { Lesson } from '@/types/lesson'
+import { gitWorkflowLesson } from './phase-1-git'
 
 export const devopsFoundationLessons: Lesson[] = [
   {
@@ -42,12 +43,13 @@ df -h`,
       },
     ],
   },
+  gitWorkflowLesson,
   {
     id: 'do-docker-basics',
     moduleId: 'devops',
     phaseId: 'do-foundations',
     phaseNumber: 1,
-    order: 2,
+    order: 3,
     title: 'Docker Images & Containers',
     description: 'Dockerfile layers, build context, run, exec, volumes, and multi-stage builds.',
     duration: '1.5 h',
@@ -92,7 +94,7 @@ CMD ["node", "server.js"]`,
     moduleId: 'devops',
     phaseId: 'do-foundations',
     phaseNumber: 1,
-    order: 3,
+    order: 4,
     title: 'Docker Compose for Local Dev',
     description: 'Multi-service stacks: app + Postgres + Redis with networks and healthchecks.',
     duration: '1 h',
@@ -140,7 +142,7 @@ CMD ["node", "server.js"]`,
     moduleId: 'devops',
     phaseId: 'do-foundations',
     phaseNumber: 1,
-    order: 4,
+    order: 5,
     title: 'Networking for Developers',
     description: 'TCP/IP basics, DNS, TLS, ports, firewalls, and how traffic reaches your container.',
     duration: '1 h',

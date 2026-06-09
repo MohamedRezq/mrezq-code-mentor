@@ -24,6 +24,7 @@ import { testingLessons } from './phase-3-testing'
 import { applyPhase7TestingEnhancements } from './phase-7-testing-enhancements'
 import { productionLessons } from './phase-4-production'
 import { applyPhase8ProductionEnhancements } from './phase-8-production-enhancements'
+import { applyPythonDockerScenarioEnhancements } from '../devops/git-docker-scenario-enhancements'
 import { pythonReferenceLessons } from './phase-9-python-reference'
 import { applyPhase9ReferenceEnhancements } from './phase-9-reference-enhancements'
 
@@ -41,7 +42,9 @@ const phase4Lessons = applyPhase4FrameworkEnhancements([...djangoLessons])
 const phase5Lessons = applyPhase5FastapiEnhancements([...fastapiLessons])
 const phase6Lessons = applyPhase6DatabaseEnhancements([...databaseLessons])
 const phase7Lessons = applyPhase7TestingEnhancements([...testingLessons])
-const phase8Lessons = applyPhase8ProductionEnhancements([...productionLessons])
+const phase8Lessons = applyPythonDockerScenarioEnhancements(
+  applyPhase8ProductionEnhancements([...productionLessons]),
+)
 const phase9Lessons = applyPhase9ReferenceEnhancements([...pythonReferenceLessons])
 
 const rawPythonLessons: Lesson[] = [

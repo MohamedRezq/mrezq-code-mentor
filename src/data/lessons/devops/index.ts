@@ -2,6 +2,7 @@ import type { Lesson } from '@/types/lesson'
 import { withEstimatedDuration } from '@/lib/lesson-duration'
 import { mergeReviewerEnhancements } from '@/lib/curriculum/reviewer-merge'
 import { DEVOPS_REVIEWER } from './reviewer-enhancements'
+import { applyGitDockerScenarioEnhancements } from './git-docker-scenario-enhancements'
 import { devopsFoundationLessons } from './phase-1-foundations'
 import { devopsAwsLessons } from './phase-2-aws'
 import { devopsOrchestrationLessons } from './phase-3-orchestration'
@@ -21,7 +22,9 @@ function applyReviewerPass(lesson: Lesson): Lesson {
   })
 }
 
-export const devopsLessons: Lesson[] = rawDevopsLessons.map(applyReviewerPass)
+export const devopsLessons: Lesson[] = applyGitDockerScenarioEnhancements(
+  rawDevopsLessons.map(applyReviewerPass),
+)
 
 export function getLessonById(id: string): Lesson | undefined {
   return devopsLessons.find((l) => l.id === id)
